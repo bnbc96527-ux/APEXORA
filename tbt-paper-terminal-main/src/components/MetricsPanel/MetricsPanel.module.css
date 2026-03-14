@@ -1,0 +1,238 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Compact horizontal layout with even distribution */
+.grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
+}
+
+.metricItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: fit-content;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  transition: all var(--transition-normal);
+  align-items: center;
+  text-align: center;
+}
+
+.metricItem:hover {
+  background: var(--surface-active);
+  border-color: var(--border);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+.infoBtn {
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+}
+
+.infoBtn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  justify-content: center;
+}
+
+.value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+
+.tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: var(--space-1);
+  padding: var(--space-2);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-md);
+}
+
+.depthInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-top: 1px solid var(--color-border-secondary);
+  background: var(--color-bg-tertiary);
+  font-size: 10px;
+}
+
+.depthLabel {
+  color: var(--color-text-tertiary);
+}
+
+.depthValue {
+  color: var(--color-text-secondary);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: var(--color-text-tertiary);
+}
+
+/* 诚实系统：可信度相关样式 */
+.container.degraded {
+  border-color: var(--color-warning);
+}
+
+.confidenceBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  border-radius: 50%;
+  margin-left: auto;
+  cursor: help;
+}
+
+.confidenceBadge.degraded {
+  background: var(--color-warning-bg);
+}
+
+.confidenceBadge.resyncing {
+  background: rgba(249, 115, 22, 0.15);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.confidenceBadge.stale {
+  background: var(--color-negative-bg);
+}
+
+.metricItem.uncertain {
+  opacity: 0.7;
+}
+
+.metricItem.uncertain .value {
+  color: var(--text-secondary);
+}
+
+.uncertainIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  font-weight: bold;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-radius: 50%;
+  cursor: help;
+}
+
+/* Compact mode for mobile */
+.compactContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-size-xs);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.compactContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.compactMetric {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.compactLabel {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.compactValue {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.compactDivider {
+  color: var(--border-subtle);
+}

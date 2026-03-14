@@ -1,0 +1,198 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-4) var(--space-6);
+  width: 100%;
+  gap: var(--space-4);
+  background: var(--bg-primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.simulatedBadge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: help;
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.tabsContainer {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border);
+  margin-top: var(--space-2);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  margin-bottom: -1px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.tab:hover::before {
+  left: 100%;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.activeTab {
+  color: var(--electric-blue);
+  border-bottom-color: var(--electric-blue);
+  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+}
+
+.depositButton,
+.withdrawButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  height: 36px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.depositButton {
+  background: linear-gradient(135deg, var(--success), #16a34a);
+  color: white;
+  border: none;
+}
+
+.depositButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+}
+
+.withdrawButton {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.withdrawButton:hover {
+  background: var(--surface-hover);
+  border-color: var(--electric-blue);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.mainContentArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.onboardingWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: var(--space-6);
+  flex: 1;
+  min-height: 0;
+  padding-top: var(--space-4);
+}
+
+.fullWidthColumn {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+.rightColumn {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,82 @@
+/* Desktop Layout Styles */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-primary);
+  margin-right: var(--space-6);
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+.title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  background: linear-gradient(135deg, var(--electric-blue), var(--electric-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.accountWrapper {
+  margin-left: var(--space-3);
+}
+
+.settingsBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settingsBtn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--text-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--space-4) var(--space-6);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
