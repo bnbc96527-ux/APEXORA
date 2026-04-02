@@ -27,13 +27,15 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: './tbt-paper-terminal-main/package-lock.json'
     
     - name: Install dependencies
+      working-directory: ./tbt-paper-terminal-main
       run: npm ci
     
     - name: Build
-      run: npm run build
       working-directory: ./tbt-paper-terminal-main
+      run: npm run build
     
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
