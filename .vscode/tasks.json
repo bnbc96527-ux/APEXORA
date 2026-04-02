@@ -1,0 +1,50 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "push to github",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "commit changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				".",
+				"&&",
+				"git",
+				"commit",
+				"-m",
+				"Add server script for Render"
+			]
+		},
+		{
+			"label": "commit changes",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"git add . && git commit -m \"Add server script for Render\""
+			]
+		},
+		{
+			"label": "git add",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"."
+			]
+		}
+	]
+}
