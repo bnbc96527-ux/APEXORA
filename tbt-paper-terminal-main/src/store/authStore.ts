@@ -84,8 +84,13 @@ const readCsrfToken = () => {
   return match ? decodeURIComponent(match[1]) : '';
 };
 
+const getApiUrl = (path: string): string => {
+  const apiBase = import.meta.env.VITE_API_URL || '/api';
+  return `${apiBase}${path}`;
+};
+
 const apiFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(path, {
+  const response = await fetch(getApiUrl(path), {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',

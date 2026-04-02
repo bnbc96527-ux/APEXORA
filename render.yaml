@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: apexora-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd tbt-paper-terminal-main && npm install
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LIVE_TRADE_PORT
+        value: "4010"
+      - key: DEMO_MODE
+        value: "true"
+      - key: BINANCE_BASE_URL
+        value: "https://testnet.binance.vision"
+      - key: BINANCE_API_KEY
+        scope: project
+      - key: BINANCE_API_SECRET
+        scope: project
