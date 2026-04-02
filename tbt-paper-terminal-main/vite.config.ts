@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    base: '/APEXORA/',
     plugins: [react()],
     resolve: {
       alias: {
