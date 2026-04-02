@@ -1,0 +1,9 @@
+
+> dev:api
+> npm --prefix tbt-paper-terminal-main run server --
+
+
+> tbt-paper-terminal@0.1.0 server
+> node --preserve-symlinks --preserve-symlinks-main server/index.js
+
+Live trading server listening on http://localhost:4010
