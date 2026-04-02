@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { useI18n } from '../i18n';
+import { useI18n, LOCALE_OPTIONS, type LocaleKey } from '../i18n';
 import { Icon } from '../components/Icon';
 import { AvatarUpload } from '../components/AvatarUpload';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { getUiLocale } from '../utils/locale';
 import { MobileAccountPage } from './mobile';
 import styles from './SettingsPage.module.css';
 
@@ -102,7 +103,7 @@ export function SettingsPage() {
     localStorage.setItem('theme', theme);
   };
 
-  const handleLanguageChange = (lang: 'zh-CN' | 'en-US') => {
+  const handleLanguageChange = (lang: LocaleKey) => {
     setLocale(lang);
     updatePreferences({ language: lang });
   };
@@ -333,7 +334,7 @@ export function SettingsPage() {
               </div>
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>{t.settings?.profile?.lastLogin || 'Last Login'}</span>
-                <span className={styles.infoValue}>{new Date(user.lastLogin).toLocaleString()}</span>
+                <span className={styles.infoValue}>{new Date(user.lastLogin).toLocaleString(getUiLocale())}</span>
               </div>
             </div>
           </div>
@@ -393,6 +394,17 @@ export function SettingsPage() {
                 >
                   <span>{t.language?.en || 'English'}</span>
                 </button>
+                {LOCALE_OPTIONS.map((option) => (
+                  option.key === 'zh-CN' || option.key === 'en-US' ? null : (
+                    <button
+                      key={option.key}
+                      className={`${styles.optionBtn} ${locale === option.key ? styles.selected : ''}`}
+                      onClick={() => handleLanguageChange(option.key)}
+                    >
+                      <span>{option.nativeLabel}</span>
+                    </button>
+                  )
+                ))}
               </div>
             </div>
 

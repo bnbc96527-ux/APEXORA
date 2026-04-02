@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWalletStore } from '../store/walletStore';
+import { useWalletStore, selectBalances, selectDeposits } from '../store/walletStore';
 import { useI18n } from '../i18n';
 import { Icon } from '../components/Icon';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -21,7 +21,10 @@ export function WalletPage() {
   // All hooks must be called before any conditional returns
   const isMobile = useIsMobile();
   const { t } = useI18n();
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const stage = useWalletStore((state) => state.getOnboardingStage());
+  const balances = useWalletStore(selectBalances);
+  const deposits = useWalletStore(selectDeposits);
   const [activeTab, setActiveTab] = useState<WalletTab>('overview');
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -38,6 +41,12 @@ export function WalletPage() {
     { id: 'history', label: t.wallet?.history || 'History', icon: 'history' },
   ];
 
+  const pendingRealDeposits = deposits.filter(
+    (d) => d.accountType === 'real' && (d.status === 'pending' || d.status === 'pending_approval')
+  );
+  const hasApprovedBalance = balances.some((b) => Number(b.total) > 0);
+  const hideBalancesAndHistory = activeAccountType === 'real' && pendingRealDeposits.length > 0 && !hasApprovedBalance;
+
   return (
     <div className={styles.container}>
       {/* Header with Simulated Badge */}
@@ -49,9 +58,13 @@ export function WalletPage() {
           </h1>
           <span 
             className={styles.simulatedBadge}
-            title={t.wallet?.simulatedTooltip || 'This is a simulated wallet for paper trading.'}
+            title={activeAccountType === 'real'
+              ? (t.wallet?.simulatedTooltip || 'This is the live account view.')
+              : (t.wallet?.simulatedTooltip || 'This is a simulated wallet for paper trading.')}
           >
-            {t.wallet?.simulatedBadge || 'Simulated'}
+            {activeAccountType === 'real'
+              ? (t.wallet?.liveBadge || 'Real')
+              : (t.wallet?.simulatedBadge || 'Simulated')}
           </span>
         </div>
         
@@ -95,6 +108,30 @@ export function WalletPage() {
 
       {/* Main Content */}
       <div className={styles.mainContentArea}>
+        {hideBalancesAndHistory && (
+          <div className={styles.approvalLockPanel}>
+            <div className={styles.approvalNoticeHeader}>
+              <Icon name="shield" size="sm" />
+              <span>{t.wallet?.depositPending || 'Pending approval'}</span>
+            </div>
+            <div className={styles.approvalNoticeBody}>
+              {pendingRealDeposits.length === 1
+                ? `${pendingRealDeposits[0]!.amount} ${pendingRealDeposits[0]!.asset} is waiting for admin or boss approval.`
+                : `${pendingRealDeposits.length} deposits are waiting for admin or boss approval.`}
+              {' '}
+              The wallet balance and history will update only after approval.
+            </div>
+            <div className={styles.pendingList}>
+              {pendingRealDeposits.slice(0, 3).map((deposit) => (
+                <div key={deposit.depositId} className={styles.pendingItem}>
+                  <span>{deposit.depositId}</span>
+                  <span>{deposit.amount} {deposit.asset}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {stage === 'not_created' ? (
           <div className={styles.onboardingWrapper}>
             <OnboardingGuide stage={stage} />
@@ -110,7 +147,7 @@ export function WalletPage() {
             )}
 
             <div className={styles.content}>
-              {activeTab === 'overview' && (
+              {activeTab === 'overview' && !hideBalancesAndHistory && (
                 <>
                   {/* Left Column */}
                   <div className={styles.leftColumn}>
@@ -128,12 +165,32 @@ export function WalletPage() {
                 </>
               )}
 
-              {activeTab === 'spot' && (
+              {activeTab === 'overview' && hideBalancesAndHistory && (
+                <div className={styles.fullWidthColumn}>
+                  <LinkedMethodsPanel highlightAdd={stage === 'no_payment_method'} />
+                </div>
+              )}
+
+              {activeTab === 'spot' && !hideBalancesAndHistory && (
                 <div className={styles.fullWidthColumn}>
                   <AssetBalancesPanel 
                     onDeposit={() => setDepositOpen(true)}
                     onWithdraw={() => setWithdrawOpen(true)}
                   />
+                </div>
+              )}
+
+              {activeTab === 'spot' && hideBalancesAndHistory && (
+                <div className={styles.fullWidthColumn}>
+                  <div className={styles.pendingHistoryPanel}>
+                    <div className={styles.pendingHistoryTitle}>
+                      <Icon name="history" size="sm" />
+                      <span>Balance hidden during review</span>
+                    </div>
+                    <div className={styles.pendingHistoryBody}>
+                      Approved deposits will appear here and update the total balance.
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -143,9 +200,31 @@ export function WalletPage() {
                 </div>
               )}
 
-              {activeTab === 'history' && (
+              {activeTab === 'history' && !hideBalancesAndHistory && (
                 <div className={styles.fullWidthColumn}>
                   <LedgerTable />
+                </div>
+              )}
+
+              {activeTab === 'history' && hideBalancesAndHistory && (
+                <div className={styles.fullWidthColumn}>
+                  <div className={styles.pendingHistoryPanel}>
+                    <div className={styles.pendingHistoryTitle}>
+                      <Icon name="history" size="sm" />
+                      <span>Deposit history pending approval</span>
+                    </div>
+                    <div className={styles.pendingHistoryBody}>
+                      Pending deposits are shown above and will move into the total balance after approval.
+                    </div>
+                    <div className={styles.pendingList}>
+                      {pendingRealDeposits.map((deposit) => (
+                        <div key={deposit.depositId} className={styles.pendingItem}>
+                          <span>{deposit.depositId}</span>
+                          <span>{deposit.amount} {deposit.asset}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

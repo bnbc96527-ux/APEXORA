@@ -5,6 +5,7 @@ import { Sparkline } from '../components/Chart';
 import { Icon, IconName } from '../components/Icon';
 import { useWatchlistStore } from '../store/watchlistStore';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { useMarketTickerLive } from '../hooks/useMarketTickerLive';
 import { MobileMarketsPage } from './mobile';
 import {
   fetchAllTickers,
@@ -45,6 +46,8 @@ export function MarketsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { favorites, toggleFavorite, addSymbol, setSelectedSymbol } = useWatchlistStore();
+
+  useMarketTickerLive(setMarkets);
 
   // Track if we've already loaded sparklines to avoid re-fetching
   const [sparklinesLoaded, setSparklinesLoaded] = useState(false);
@@ -102,7 +105,7 @@ export function MarketsPage() {
   useEffect(() => {
     loadData(true);
     // Increase interval from 10s to 60s to avoid Binance rate limits [[memory:12434456]]
-    const timer = setInterval(() => loadData(false), 60000);
+    const timer = setInterval(() => loadData(false), 15000);
     return () => clearInterval(timer);
   }, [loadData]);
 

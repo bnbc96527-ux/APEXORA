@@ -11,6 +11,7 @@ import {
 } from '../../store/watchlistStore';
 import { useTradingStore, selectPositions } from '../../store/tradingStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import styles from './Watchlist.module.css';
 import Decimal from 'decimal.js';
@@ -158,7 +159,7 @@ function WatchlistItem({
         <div className={styles.itemRight}>
           <div className={`${styles.price} tabular-nums`}>
             {hasPrice 
-              ? parseFloat(symbol.price!).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+              ? parseFloat(symbol.price!).toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 4 })
               : <span className={styles.loading}>...</span>
             }
           </div>
@@ -197,11 +198,17 @@ export function Watchlist({ onSymbolChange, isCollapsed = false, compact: _compa
   
   // 获取所有 symbols 的价格数据（优化：减少请求频率）
   useEffect(() => {
+    if (symbols.length === 0) return;
+
+    const controller = new AbortController();
+
     const fetchPrices = async () => {
       try {
         // 使用代理路径避免 CORS 问题
-        const symbolList = symbols.map(s => s.symbol).join(',');
-        const response = await fetch(`/binance-api/api/v3/ticker/24hr?symbols=[${symbolList.split(',').map(s => `"${s}"`).join(',')}]`);
+        const symbolPayload = encodeURIComponent(JSON.stringify(symbols.map((s) => s.symbol)));
+        const response = await fetch(`/binance-api/api/v3/ticker/24hr?symbols=${symbolPayload}`, {
+          signal: controller.signal,
+        });
         
         if (!response.ok) {
           console.warn('Watchlist fetch failed:', response.status);
@@ -219,6 +226,7 @@ export function Watchlist({ onSymbolChange, isCollapsed = false, compact: _compa
           );
         }
       } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
         console.error('Failed to fetch prices:', err);
       }
     };
@@ -226,10 +234,11 @@ export function Watchlist({ onSymbolChange, isCollapsed = false, compact: _compa
     // 延迟首次请求
     const initialDelay = setTimeout(fetchPrices, 500);
 
-    // 每 60 秒更新一次（避免速率限制）
-    const interval = setInterval(fetchPrices, 60000);
+    // Backup REST refresh in case WebSocket is blocked
+    const interval = setInterval(fetchPrices, 10000);
 
     return () => {
+      controller.abort();
       clearTimeout(initialDelay);
       clearInterval(interval);
     };

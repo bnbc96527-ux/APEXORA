@@ -2,12 +2,86 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { zhCN, type Locale } from './locales/zh-CN';
 import { enUS } from './locales/en-US';
+import { esES } from './locales/es-ES';
+import { frFR } from './locales/fr-FR';
+import { jaJP } from './locales/ja-JP';
+import { koKR } from './locales/ko-KR';
+import { ptBR } from './locales/pt-BR';
+import { arSA } from './locales/ar-SA';
 
-export type LocaleKey = 'zh-CN' | 'en-US';
+export type LocaleKey = 'zh-CN' | 'en-US' | 'es-ES' | 'fr-FR' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'ar-SA';
+
+export interface LocaleOption {
+  key: LocaleKey;
+  label: string;
+  nativeLabel: string;
+  flag: string;
+  dir?: 'ltr' | 'rtl';
+}
 
 const locales: Record<LocaleKey, Locale> = {
   'zh-CN': zhCN,
   'en-US': enUS,
+  'es-ES': esES,
+  'fr-FR': frFR,
+  'ja-JP': jaJP,
+  'ko-KR': koKR,
+  'pt-BR': ptBR,
+  'ar-SA': arSA,
+};
+
+export const LOCALE_OPTIONS: LocaleOption[] = [
+  { key: 'en-US', label: 'English', nativeLabel: 'English', flag: 'US' },
+  { key: 'zh-CN', label: 'Chinese', nativeLabel: '中文', flag: 'CN' },
+  { key: 'es-ES', label: 'Spanish', nativeLabel: 'Español', flag: 'ES' },
+  { key: 'fr-FR', label: 'French', nativeLabel: 'Français', flag: 'FR' },
+  { key: 'ja-JP', label: 'Japanese', nativeLabel: '日本語', flag: 'JP' },
+  { key: 'ko-KR', label: 'Korean', nativeLabel: '한국어', flag: 'KR' },
+  { key: 'pt-BR', label: 'Portuguese', nativeLabel: 'Português', flag: 'BR' },
+  { key: 'ar-SA', label: 'Arabic', nativeLabel: 'العربية', flag: 'SA', dir: 'rtl' },
+];
+
+const DEFAULT_LOCALE: LocaleKey = 'en-US';
+
+const isLocaleKey = (value: string): value is LocaleKey => value in locales;
+
+export const getLocaleOption = (locale: LocaleKey) => LOCALE_OPTIONS.find((option) => option.key === locale) || LOCALE_OPTIONS[0]!;
+
+export const detectPreferredLocale = (): LocaleKey => {
+  if (typeof window === 'undefined') return DEFAULT_LOCALE;
+
+  const stored = window.localStorage.getItem('i18n-storage');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as { state?: { locale?: string } };
+      const locale = parsed?.state?.locale;
+      if (locale && isLocaleKey(locale)) return locale;
+    } catch {
+      // Ignore malformed storage and fall back to browser detection.
+    }
+  }
+
+  const candidates = [navigator.language, ...(navigator.languages || [])]
+    .filter(Boolean)
+    .map((lang) => lang.toLowerCase());
+
+  const directMatch = candidates.find((lang) => isLocaleKey(lang as LocaleKey));
+  if (directMatch && isLocaleKey(directMatch as LocaleKey)) return directMatch as LocaleKey;
+
+  if (candidates.some((lang) => lang.startsWith('zh'))) return 'zh-CN';
+  if (candidates.some((lang) => lang.startsWith('es'))) return 'es-ES';
+  if (candidates.some((lang) => lang.startsWith('fr'))) return 'fr-FR';
+  if (candidates.some((lang) => lang.startsWith('ja'))) return 'ja-JP';
+  if (candidates.some((lang) => lang.startsWith('ko'))) return 'ko-KR';
+  if (candidates.some((lang) => lang.startsWith('pt'))) return 'pt-BR';
+  if (candidates.some((lang) => lang.startsWith('ar'))) return 'ar-SA';
+  return DEFAULT_LOCALE;
+};
+
+const applyDocumentLocale = (locale: LocaleKey) => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = locale;
+  document.documentElement.dir = getLocaleOption(locale).dir || 'ltr';
 };
 
 interface I18nState {
@@ -19,17 +93,21 @@ interface I18nState {
 export const useI18n = create<I18nState>()(
   persist(
     (set) => ({
-      locale: 'zh-CN',
+      locale: detectPreferredLocale(),
       setLocale: (locale: LocaleKey) => {
+        applyDocumentLocale(locale);
         set({ locale, t: locales[locale] });
       },
-      t: zhCN,
+      t: locales[detectPreferredLocale()],
     }),
     {
       name: 'i18n-storage',
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.t = locales[state.locale];
+          const locale = isLocaleKey(state.locale) ? state.locale : DEFAULT_LOCALE;
+          state.locale = locale;
+          state.t = locales[locale];
+          applyDocumentLocale(locale);
         }
       },
     }
@@ -72,9 +150,8 @@ export function formatNumber(value: number, t: Locale['numbers']): string {
   return value.toFixed(2);
 }
 
-export { zhCN, enUS };
+export { zhCN, enUS, esES, frFR, jaJP, koKR, ptBR, arSA };
 export type { Locale };
-
 
 
 

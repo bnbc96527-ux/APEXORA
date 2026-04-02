@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--card-bg);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -72,8 +72,8 @@
 /* 搜索框 */
 .searchWrapper {
   position: relative;
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--panel-border-strong);
 }
 
 .searchIcon {
@@ -89,13 +89,13 @@
 
 .searchInput {
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: 0.72rem var(--space-3);
   padding-left: calc(var(--space-2) + 24px);
   padding-right: var(--space-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -140,9 +140,9 @@
   font-size: 11px;
   font-weight: 500;
   color: var(--text-tertiary);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -195,17 +195,18 @@
   justify-content: space-between;
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
-  transition: background 0.1s;
-  border-bottom: 1px solid var(--border-light);
-  min-height: 42px;
+  transition: background 0.1s, transform 0.1s ease;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-border-strong) 70%, transparent);
+  min-height: 48px;
 }
 
 .item:hover {
-  background: var(--surface-hover);
+  background: color-mix(in srgb, var(--surface-hover) 78%, transparent);
 }
 
 .item.selected {
-  background: var(--accent-alpha);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--electric-blue) 16%, transparent), transparent 88%);
+  box-shadow: inset 3px 0 0 var(--electric-blue);
 }
 
 .item.selected:hover {
@@ -276,7 +277,7 @@
 
 .symbolName {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -294,7 +295,7 @@
 }
 
 .symbolQuote {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-tertiary);
   white-space: nowrap;
 }
@@ -320,14 +321,14 @@
 
 /* 价格 */
 .price {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
 .priceChange {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
 }
@@ -371,7 +372,6 @@
   font-size: var(--font-xs);
   color: var(--text-tertiary);
 }
-
 
 
 

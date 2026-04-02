@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector, persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import Decimal from 'decimal.js';
+import type { AccountType } from '../types/wallet';
 import type {
   PaperOrder,
   Fill,
@@ -11,7 +12,6 @@ import type {
   OrderType,
   OCOOrder,
   TriggerDirection,
-  TrailingType,
   CreateOCOParams,
   CreateTrailingStopParams,
 } from '../types/trading';
@@ -19,11 +19,44 @@ import type { OrderBook } from '../types/market';
 import { useWalletStore } from './walletStore';
 import { useMarketStore } from './marketStore';
 import { notification } from './notificationStore';
+import { liveTradeService, type LiveOrder, type LiveTrade } from '../services/liveTradeService';
 
 // ===== Constants =====
 const FEE_RATE = 0.001; // 0.1% fee
 const SIMULATED_DELAY_MIN_MS = 50;
 const SIMULATED_DELAY_MAX_MS = 200;
+const LIVE_TRADING_ENABLED = import.meta.env.VITE_LIVE_TRADING === 'true';
+const getActiveAccountType = (): AccountType => useWalletStore.getState().activeAccountType;
+const isRealAccountActive = (): boolean => getActiveAccountType() === 'real';
+const isLiveTradingActive = (): boolean => LIVE_TRADING_ENABLED && isRealAccountActive();
+const getPositionKey = (accountType: AccountType, symbol: string) => `${accountType}:${symbol}`;
+
+const mapLiveStatus = (status?: string): OrderStatus => {
+  switch (status) {
+    case 'NEW':
+      return 'open';
+    case 'PARTIALLY_FILLED':
+      return 'partial';
+    case 'FILLED':
+      return 'filled';
+    case 'CANCELED':
+    case 'EXPIRED':
+    case 'EXPIRED_IN_MATCH':
+      return 'cancelled';
+    case 'REJECTED':
+      return 'rejected';
+    default:
+      return 'open';
+  }
+};
+
+const mapLiveOrderType = (type?: string): OrderType => {
+  return type === 'LIMIT' ? 'limit' : 'market';
+};
+
+const mapLiveSide = (side?: string): OrderSide => {
+  return side === 'SELL' ? 'sell' : 'buy';
+};
 
 // ===== Helper: Check if order type is conditional =====
 const isConditionalOrder = (type: OrderType): boolean => {
@@ -64,6 +97,12 @@ interface TradingState {
   updateOrderBookForMatching: (orderBook: OrderBook) => void;
   checkConditionalOrders: (symbol: string, currentPrice: string, previousPrice: string) => void;
   updateTrailingStops: (symbol: string, currentPrice: string) => void;
+  syncLiveOrders: (orders: LiveOrder[]) => void;
+  syncLiveTrades: (trades: LiveTrade[]) => void;
+  setLivePositionsFromBalances: (
+    balances: { asset: string; free: string; locked: string }[],
+    priceLookup?: Record<string, string | undefined>
+  ) => void;
   
   // Position management
   checkTPSL: (symbol: string, midPrice: string) => void;
@@ -146,6 +185,89 @@ export const useTradingStore = create<TradingState>()(
           const { symbol, side, type, price, quantity, takeProfitPrice, stopLossPrice, triggerPrice, triggerDirection } = params;
           const walletStore = useWalletStore.getState();
           const marketStore = useMarketStore.getState();
+          const accountType = getActiveAccountType();
+
+          if (isLiveTradingActive()) {
+            const confidence = marketStore.dataConfidence;
+            if (confidence.level === 'stale' || confidence.level === 'resyncing') {
+              notification.error(`error:live_block:${Date.now()}`, `EXECUTION_BLOCKED: Data Integrity Critical (${confidence.level})`);
+              return null;
+            }
+
+            // Live trading only supports basic market/limit orders in this build
+            if (type !== 'limit' && type !== 'market') {
+              notification.warning(`warning:live_unsupported:${Date.now()}`, 'Live trading supports only market and limit orders.');
+              return null;
+            }
+
+            if (!quantity || parseFloat(quantity) <= 0) return null;
+            if (type === 'limit' && (!price || parseFloat(price) <= 0)) return null;
+
+            const now = Date.now();
+            const clientOrderId = `ptt_${uuidv4().slice(0, 12)}`;
+            const order: PaperOrder = {
+              clientOrderId,
+              exchangeOrderId: undefined,
+              source: 'live',
+              symbol,
+              side,
+              type,
+              price: type === 'limit' ? price! : null,
+              quantity,
+              filledQty: '0',
+              avgPrice: '0',
+              status: 'submitted',
+              createdAt: now,
+              updatedAt: now,
+              fills: [],
+              accountType,
+              takeProfitPrice,
+              stopLossPrice,
+            };
+
+            set((state) => ({ orders: [order, ...state.orders] }));
+
+            liveTradeService.placeOrder({
+              symbol,
+              side: side === 'buy' ? 'BUY' : 'SELL',
+              type: type === 'limit' ? 'LIMIT' : 'MARKET',
+              quantity,
+              price: type === 'limit' ? price : undefined,
+              timeInForce: type === 'limit' ? 'GTC' : undefined,
+              newClientOrderId: clientOrderId,
+            }).then((live) => {
+              set((s) => ({
+                orders: s.orders.map((o) => {
+                  if (o.clientOrderId !== clientOrderId) return o;
+                  const executedQty = live.executedQty || '0';
+                  const cumQuote = live.cummulativeQuoteQty || '0';
+                  const avgPrice = parseFloat(executedQty) > 0 && parseFloat(cumQuote) > 0
+                    ? new Decimal(cumQuote).div(executedQty).toFixed(8)
+                    : o.avgPrice;
+                  return {
+                    ...o,
+                    exchangeOrderId: String(live.orderId),
+                    status: mapLiveStatus(live.status),
+                    filledQty: executedQty,
+                    avgPrice,
+                    updatedAt: Date.now(),
+                  };
+                }),
+              }));
+            }).catch((err) => {
+              const message = err?.message || 'Live order rejected';
+              set((s) => ({
+                orders: s.orders.map((o) =>
+                  o.clientOrderId === clientOrderId
+                    ? { ...o, status: 'rejected', rejectReason: message, updatedAt: Date.now() }
+                    : o
+                ),
+              }));
+              notification.error(`error:live_order:${Date.now()}`, message);
+            });
+
+            return order;
+          }
 
           // Data Confidence Check
           const confidence = marketStore.dataConfidence;
@@ -196,6 +318,7 @@ export const useTradingStore = create<TradingState>()(
           
           const order: PaperOrder = {
             clientOrderId: uuidv4(),
+            accountType,
             symbol, side, type,
             price: needsLimitPrice ? price! : null,
             quantity, filledQty: '0', avgPrice: '0',
@@ -229,7 +352,7 @@ export const useTradingStore = create<TradingState>()(
                 freezeAmount = quantity;
               }
 
-              const frozen = walletState.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order');
+              const frozen = walletState.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order', order.accountType);
               if (!frozen) {
                 set((s) => ({ orders: s.orders.map(o => o.clientOrderId === order.clientOrderId ? { ...o, status: 'rejected', rejectReason: 'Insufficient balance', updatedAt: Date.now() } : o) }));
               }
@@ -258,7 +381,7 @@ export const useTradingStore = create<TradingState>()(
               freezeAmount = currentOrder.quantity;
             }
 
-            const frozen = walletState.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order');
+            const frozen = walletState.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order', currentOrder.accountType);
 
             if (!frozen) {
               set((s) => ({ orders: s.orders.map(o => o.clientOrderId === order.clientOrderId ? { ...o, status: 'rejected', rejectReason: 'Insufficient balance', updatedAt: Date.now() } : o) }));
@@ -276,6 +399,10 @@ export const useTradingStore = create<TradingState>()(
 
         // ===== Stop-Limit Order =====
         createStopLimitOrder: (params) => {
+          if (isLiveTradingActive()) {
+            notification.warning(`warning:live_unsupported:${Date.now()}`, 'Live trading supports only market and limit orders.');
+            return null;
+          }
           const { symbol, side, quantity, triggerPrice, limitPrice } = params;
           return get().createOrder({
             symbol,
@@ -290,6 +417,10 @@ export const useTradingStore = create<TradingState>()(
 
         // ===== Take-Profit-Limit Order =====
         createTakeProfitLimitOrder: (params) => {
+          if (isLiveTradingActive()) {
+            notification.warning(`warning:live_unsupported:${Date.now()}`, 'Live trading supports only market and limit orders.');
+            return null;
+          }
           const { symbol, side, quantity, triggerPrice, limitPrice } = params;
           return get().createOrder({
             symbol,
@@ -304,6 +435,10 @@ export const useTradingStore = create<TradingState>()(
 
         // ===== OCO Order (One-Cancels-Other) =====
         createOCOOrder: (params) => {
+          if (isLiveTradingActive()) {
+            notification.warning(`warning:live_unsupported:${Date.now()}`, 'Live trading supports only market and limit orders.');
+            return null;
+          }
           const { symbol, side, quantity, limitPrice, stopPrice, stopLimitPrice } = params;
           const walletStore = useWalletStore.getState();
           const marketStore = useMarketStore.getState();
@@ -342,10 +477,12 @@ export const useTradingStore = create<TradingState>()(
           const ocoGroupId = `oco_${uuidv4().slice(0, 8)}`;
           const limitOrderId = uuidv4();
           const stopOrderId = uuidv4();
+          const accountType = getActiveAccountType();
 
           // Create limit order
           const limitOrder: PaperOrder = {
             clientOrderId: limitOrderId,
+            accountType,
             symbol, side, type: 'limit',
             price: limitPrice,
             quantity, filledQty: '0', avgPrice: '0',
@@ -359,6 +496,7 @@ export const useTradingStore = create<TradingState>()(
           // Create stop-limit order
           const stopOrder: PaperOrder = {
             clientOrderId: stopOrderId,
+            accountType,
             symbol, side, type: 'stop_limit',
             price: stopLimitPrice,
             quantity, filledQty: '0', avgPrice: '0',
@@ -375,6 +513,7 @@ export const useTradingStore = create<TradingState>()(
           // Create OCO record
           const ocoOrder: OCOOrder = {
             ocoGroupId,
+            accountType,
             symbol, side, quantity,
             limitPrice, stopPrice, stopLimitPrice,
             status: 'active',
@@ -388,7 +527,7 @@ export const useTradingStore = create<TradingState>()(
             ? new Decimal(limitPrice).times(quantity).toFixed(8)
             : quantity;
           
-          const frozen = walletStore.freezeBalance(freezeAsset, freezeAmount, ocoGroupId, 'order');
+          const frozen = walletStore.freezeBalance(freezeAsset, freezeAmount, ocoGroupId, 'order', accountType);
           if (!frozen) {
             notification.error(`order:balance:${Date.now()}`, 'INSUFFICIENT_MARGIN: Failed to freeze balance');
             return null;
@@ -405,6 +544,10 @@ export const useTradingStore = create<TradingState>()(
 
         // ===== Trailing Stop Order =====
         createTrailingStopOrder: (params) => {
+          if (isLiveTradingActive()) {
+            notification.warning(`warning:live_unsupported:${Date.now()}`, 'Live trading supports only market and limit orders.');
+            return null;
+          }
           const { symbol, side, quantity, trailingType, trailingValue, activationPrice } = params;
           const walletStore = useWalletStore.getState();
           const marketStore = useMarketStore.getState();
@@ -444,6 +587,7 @@ export const useTradingStore = create<TradingState>()(
 
           const now = Date.now();
           const currentPriceDec = new Decimal(currentPrice);
+          const accountType = getActiveAccountType();
           
           // Calculate initial trailing stop price
           let trailingStopPrice: string;
@@ -465,6 +609,7 @@ export const useTradingStore = create<TradingState>()(
 
           const order: PaperOrder = {
             clientOrderId: uuidv4(),
+            accountType,
             symbol, side, type: 'trailing_stop',
             price: null,
             quantity, filledQty: '0', avgPrice: '0',
@@ -485,7 +630,7 @@ export const useTradingStore = create<TradingState>()(
             ? new Decimal(currentPrice).times(quantity).times(1.1).toFixed(8)
             : quantity;
           
-          const frozen = walletStore.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order');
+          const frozen = walletStore.freezeBalance(freezeAsset, freezeAmount, order.clientOrderId, 'order', accountType);
           if (!frozen) {
             notification.error(`order:balance:${Date.now()}`, 'INSUFFICIENT_MARGIN: Failed to freeze balance');
             return null;
@@ -498,7 +643,8 @@ export const useTradingStore = create<TradingState>()(
 
         cancelOCOOrder: (ocoGroupId) => {
           const state = get();
-          const ocoOrder = state.ocoOrders.find(o => o.ocoGroupId === ocoGroupId);
+          const activeAccountType = getActiveAccountType();
+          const ocoOrder = state.ocoOrders.find(o => o.ocoGroupId === ocoGroupId && (o.accountType ?? activeAccountType) === activeAccountType);
           if (!ocoOrder || ocoOrder.status !== 'active') return false;
 
           const walletStore = useWalletStore.getState();
@@ -511,7 +657,7 @@ export const useTradingStore = create<TradingState>()(
             ? new Decimal(ocoOrder.limitPrice).times(ocoOrder.quantity).toFixed(8)
             : ocoOrder.quantity;
           
-          walletStore.unfreezeBalance(unfreezeAsset, unfreezeAmount, ocoGroupId, 'order');
+          walletStore.unfreezeBalance(unfreezeAsset, unfreezeAmount, ocoGroupId, 'order', ocoOrder.accountType);
 
           // Cancel both orders
           set((s) => ({
@@ -528,8 +674,31 @@ export const useTradingStore = create<TradingState>()(
 
         cancelOrder: (clientOrderId) => {
           const state = get();
+          if (isLiveTradingActive()) {
+            const order = state.orders.find(o => o.clientOrderId === clientOrderId && o.accountType === 'real');
+            if (!order || !['pending', 'open', 'partial', 'submitted'].includes(order.status)) return false;
+
+            liveTradeService.cancelOrder({
+              symbol: order.symbol,
+              orderId: order.exchangeOrderId,
+              origClientOrderId: order.clientOrderId,
+            }).then(() => {
+              set((s) => ({
+                orders: s.orders.map(o =>
+                  o.clientOrderId === clientOrderId ? { ...o, status: 'cancelled', updatedAt: Date.now() } : o
+                ),
+              }));
+            }).catch((err) => {
+              const message = err?.message || 'Failed to cancel live order';
+              notification.error(`error:live_cancel:${Date.now()}`, message);
+            });
+
+            return true;
+          }
+
           const walletStore = useWalletStore.getState();
-          const order = state.orders.find(o => o.clientOrderId === clientOrderId);
+          const activeAccountType = getActiveAccountType();
+          const order = state.orders.find(o => o.clientOrderId === clientOrderId && (o.accountType ?? activeAccountType) === activeAccountType);
           if (!order || !['pending', 'open', 'partial'].includes(order.status)) return false;
 
           const baseAsset = order.symbol.replace('USDT', '');
@@ -552,7 +721,7 @@ export const useTradingStore = create<TradingState>()(
               unfreezeAsset = baseAsset;
               unfreezeAmount = remainingQty.toFixed(8);
             }
-            walletStore.unfreezeBalance(unfreezeAsset, unfreezeAmount, clientOrderId, 'order');
+            walletStore.unfreezeBalance(unfreezeAsset, unfreezeAmount, clientOrderId, 'order', order.accountType);
           }
 
           // If this is an OCO order, cancel the linked order too
@@ -568,12 +737,14 @@ export const useTradingStore = create<TradingState>()(
         // ===== Check and trigger conditional orders =====
         checkConditionalOrders: (symbol, currentPrice, previousPrice) => {
           const state = get();
+          const activeAccountType = getActiveAccountType();
           const currentPriceDec = new Decimal(currentPrice);
           const previousPriceDec = new Decimal(previousPrice);
           
           const conditionalOrders = state.orders.filter(o => 
             o.symbol === symbol && 
             o.status === 'open' && 
+            (o.accountType ?? activeAccountType) === activeAccountType &&
             isConditionalOrder(o.type) && 
             !o.isTriggered &&
             o.triggerPrice
@@ -655,11 +826,13 @@ export const useTradingStore = create<TradingState>()(
         // ===== Update trailing stop orders =====
         updateTrailingStops: (symbol, currentPrice) => {
           const state = get();
+          const activeAccountType = getActiveAccountType();
           const currentPriceDec = new Decimal(currentPrice);
           
           const trailingOrders = state.orders.filter(o => 
             o.symbol === symbol && 
             o.status === 'open' && 
+            (o.accountType ?? activeAccountType) === activeAccountType &&
             o.type === 'trailing_stop' &&
             !o.isTriggered
           );
@@ -673,7 +846,6 @@ export const useTradingStore = create<TradingState>()(
             }
 
             let newStopPrice: Decimal;
-            let shouldUpdate = false;
             let shouldTrigger = false;
 
             if (order.side === 'sell') {
@@ -701,7 +873,6 @@ export const useTradingStore = create<TradingState>()(
                       : o
                   )
                 }));
-                shouldUpdate = true;
               }
 
               // Check if stop triggered
@@ -734,7 +905,6 @@ export const useTradingStore = create<TradingState>()(
                       : o
                   )
                 }));
-                shouldUpdate = true;
               }
 
               // Check if stop triggered
@@ -764,9 +934,230 @@ export const useTradingStore = create<TradingState>()(
           }
         },
 
+        syncLiveOrders: (orders) => {
+          if (!isLiveTradingActive() || !orders) return;
+
+          set((state) => {
+            const activeAccountType: AccountType = 'real';
+            const byClientId = new Map(orders.map((o) => [o.clientOrderId, o]));
+            const byExchangeId = new Map(orders.map((o) => [String(o.orderId), o]));
+            const existingIds = new Set(state.orders.filter((o) => (o.accountType ?? activeAccountType) === activeAccountType).map((o) => o.clientOrderId));
+            const existingExchangeIds = new Set(
+              state.orders
+                .filter((o) => o.exchangeOrderId && (o.accountType ?? activeAccountType) === activeAccountType)
+                .map((o) => String(o.exchangeOrderId))
+            );
+            const now = Date.now();
+
+            const updated = state.orders.map((o) => {
+              if (o.source !== 'live' || (o.accountType ?? activeAccountType) !== activeAccountType) return o;
+              const live = byClientId.get(o.clientOrderId) || (o.exchangeOrderId ? byExchangeId.get(String(o.exchangeOrderId)) : undefined);
+              if (!live) return o;
+
+              const executedQty = live.executedQty || '0';
+              const cumQuote = live.cummulativeQuoteQty || '0';
+              const avgPrice = parseFloat(executedQty) > 0 && parseFloat(cumQuote) > 0
+                ? new Decimal(cumQuote).div(executedQty).toFixed(8)
+                : o.avgPrice;
+
+              return {
+                ...o,
+                exchangeOrderId: String(live.orderId),
+                status: mapLiveStatus(live.status),
+                filledQty: executedQty,
+                avgPrice,
+                updatedAt: now,
+                accountType: activeAccountType,
+              };
+            });
+
+            const newOrders = orders
+              .filter((o) => !existingIds.has(o.clientOrderId) && !existingExchangeIds.has(String(o.orderId)))
+              .map((o) => {
+                const executedQty = o.executedQty || '0';
+                const cumQuote = o.cummulativeQuoteQty || '0';
+                const avgPrice = parseFloat(executedQty) > 0 && parseFloat(cumQuote) > 0
+                  ? new Decimal(cumQuote).div(executedQty).toFixed(8)
+                  : '0';
+                return {
+                  clientOrderId: o.clientOrderId,
+                  exchangeOrderId: String(o.orderId),
+                  source: 'live' as const,
+                  symbol: o.symbol,
+                  side: mapLiveSide(o.side),
+                  type: mapLiveOrderType(o.type),
+                  price: o.type === 'LIMIT' ? o.price : null,
+                  quantity: o.origQty,
+                  filledQty: executedQty,
+                  avgPrice,
+                  status: mapLiveStatus(o.status),
+                  createdAt: o.time || now,
+                  updatedAt: o.updateTime || now,
+                  fills: [],
+                  accountType: activeAccountType,
+                };
+              });
+
+            return { orders: [...newOrders, ...updated] };
+          });
+        },
+
+        syncLiveTrades: (trades) => {
+          if (!isLiveTradingActive() || !trades || trades.length === 0) return;
+
+          set((state) => {
+            const activeAccountType: AccountType = 'real';
+            const byExchangeId = new Map(
+              state.orders
+                .filter((o) => o.exchangeOrderId && (o.accountType ?? activeAccountType) === activeAccountType)
+                .map((o) => [String(o.exchangeOrderId), o])
+            );
+            const byClientId = new Map(
+              state.orders
+                .filter((o) => (o.accountType ?? activeAccountType) === activeAccountType)
+                .map((o) => [o.clientOrderId, o])
+            );
+            const updatedOrders: PaperOrder[] = [];
+            const newOrders: PaperOrder[] = [];
+
+            const applyFill = (order: PaperOrder, trade: LiveTrade) => {
+              const existingFill = order.fills.find((f) => f.fillId === `trade_${trade.id}`);
+              if (existingFill) return order;
+
+              const baseAsset = order.symbol.replace('USDT', '');
+              const quoteAsset = 'USDT';
+              let fee = trade.commission;
+              if (trade.commissionAsset === baseAsset) {
+                fee = new Decimal(trade.commission).times(trade.price).toFixed(8);
+              } else if (trade.commissionAsset === quoteAsset) {
+                fee = trade.commission;
+              }
+
+              const fill = {
+                fillId: `trade_${trade.id}`,
+                price: trade.price,
+                quantity: trade.qty,
+                fee,
+                feeAsset: trade.commissionAsset,
+                time: trade.time,
+              };
+
+              const fills = [...order.fills, fill];
+              const totalFilledQty = fills.reduce((sum, f) => sum.plus(f.quantity), new Decimal(0));
+              const totalCost = fills.reduce((sum, f) => sum.plus(new Decimal(f.price).times(f.quantity)), new Decimal(0));
+              const avgPrice = totalFilledQty.gt(0) ? totalCost.div(totalFilledQty).toFixed(8) : order.avgPrice;
+
+              return {
+                ...order,
+                fills,
+                filledQty: totalFilledQty.toFixed(8),
+                avgPrice,
+                status: totalFilledQty.gte(order.quantity) ? 'filled' : order.status,
+                updatedAt: Math.max(order.updatedAt, trade.time),
+              };
+            };
+
+            for (const trade of trades) {
+              const exchangeId = String(trade.orderId);
+              let order = byExchangeId.get(exchangeId);
+              if (!order) {
+                // Fallback: client order id might match orderId in some cases
+                order = byClientId.get(exchangeId);
+              }
+
+              if (!order) {
+                const now = trade.time || Date.now();
+                const baseAsset = trade.symbol.replace('USDT', '');
+                let fee = trade.commission;
+                if (trade.commissionAsset === baseAsset) {
+                  fee = new Decimal(trade.commission).times(trade.price).toFixed(8);
+                }
+                const stub: PaperOrder = {
+                  clientOrderId: `live_${exchangeId}`,
+                  exchangeOrderId: exchangeId,
+                  source: 'live',
+                  accountType: activeAccountType,
+                  symbol: trade.symbol,
+                  side: trade.isBuyer ? 'buy' : 'sell',
+                  type: 'market',
+                  price: trade.price,
+                  quantity: trade.qty,
+                  filledQty: trade.qty,
+                  avgPrice: trade.price,
+                  status: 'filled',
+                  createdAt: now,
+                  updatedAt: now,
+                  fills: [
+                    {
+                      fillId: `trade_${trade.id}`,
+                      price: trade.price,
+                      quantity: trade.qty,
+                      fee,
+                      feeAsset: trade.commissionAsset,
+                      time: trade.time,
+                    },
+                  ],
+                };
+                newOrders.push(stub);
+                continue;
+              }
+
+              const updated = applyFill(order, trade);
+              updatedOrders.push(updated);
+            }
+
+            if (updatedOrders.length === 0 && newOrders.length === 0) return state;
+
+            const updatedMap = new Map(updatedOrders.map((o) => [o.clientOrderId, o]));
+            const merged = state.orders.map((o) => updatedMap.get(o.clientOrderId) || o);
+            return { orders: [...newOrders, ...merged] };
+          });
+        },
+
+        setLivePositionsFromBalances: (balances, priceLookup = {}) => {
+          if (!isLiveTradingActive() || !balances) return;
+
+          set((state) => {
+            const now = Date.now();
+            const prevPositions: Map<string, Position> = state.positions instanceof Map
+              ? state.positions
+              : (new Map(Object.entries(state.positions || {})) as Map<string, Position>);
+            const nextPositions = new Map<string, Position>(prevPositions);
+
+            balances.forEach((bal) => {
+              if (!bal || bal.asset === 'USDT') return;
+              const totalQty = new Decimal(bal.free || '0').plus(bal.locked || '0');
+              if (totalQty.lte(0)) return;
+
+              const symbol = `${bal.asset}USDT`;
+              const existing = prevPositions.get(getPositionKey('real', symbol));
+              const fallbackPrice = priceLookup[symbol];
+              const avgEntryPrice = existing?.avgEntryPrice
+                ?? (fallbackPrice && parseFloat(fallbackPrice) > 0 ? fallbackPrice : '0');
+
+              nextPositions.set(getPositionKey('real', symbol), {
+                accountType: 'real',
+                symbol,
+                side: 'long',
+                quantity: totalQty.toFixed(8),
+                avgEntryPrice,
+                unrealizedPnl: existing?.unrealizedPnl ?? '0',
+                realizedPnl: existing?.realizedPnl ?? '0',
+                updatedAt: now,
+                takeProfitPrice: existing?.takeProfitPrice,
+                stopLossPrice: existing?.stopLossPrice,
+              });
+            });
+
+            return { positions: nextPositions };
+          });
+        },
+
         updateOrderBookForMatching: (orderBook) => {
+          if (isLiveTradingActive()) return;
           const state = get();
           const walletStore = useWalletStore.getState();
+          const activeAccountType = getActiveAccountType();
           
           const bestBid = orderBook.bids[0];
           const bestAsk = orderBook.asks[0];
@@ -790,6 +1181,7 @@ export const useTradingStore = create<TradingState>()(
           // Get open orders that can be matched (limit and market orders, or triggered conditional orders)
           const openOrders = state.orders.filter(o => 
             o.symbol === orderBook.symbol && 
+            (o.accountType ?? activeAccountType) === activeAccountType &&
             (o.status === 'open' || o.status === 'partial') &&
             (o.type === 'limit' || o.type === 'market' || o.isTriggered)
           );
@@ -819,6 +1211,7 @@ export const useTradingStore = create<TradingState>()(
 
               const baseAsset = o.symbol.replace('USDT', '');
               const quoteAsset = 'USDT';
+              const accountType = o.accountType ?? activeAccountType;
 
               for (const fill of update.fills) {
                 const fillQty = new Decimal(fill.quantity);
@@ -826,16 +1219,17 @@ export const useTradingStore = create<TradingState>()(
                 const fee = new Decimal(fill.fee);
 
                 if (o.side === 'buy') {
-                  walletStore.deductFromFrozen(quoteAsset, fillCost.toFixed(8), fee.toFixed(8), fill.fillId, 'fill');
-                  walletStore.creditToAvailable(baseAsset, fillQty.toFixed(8), fill.fillId, 'fill');
+                  walletStore.deductFromFrozen(quoteAsset, fillCost.toFixed(8), fee.toFixed(8), fill.fillId, 'fill', accountType);
+                  walletStore.creditToAvailable(baseAsset, fillQty.toFixed(8), fill.fillId, 'fill', accountType);
                 } else {
-                  walletStore.deductFromFrozen(baseAsset, fillQty.toFixed(8), '0', fill.fillId, 'fill');
-                  walletStore.creditToAvailable(quoteAsset, fillCost.minus(fee).toFixed(8), fill.fillId, 'fill');
+                  walletStore.deductFromFrozen(baseAsset, fillQty.toFixed(8), '0', fill.fillId, 'fill', accountType);
+                  walletStore.creditToAvailable(quoteAsset, fillCost.minus(fee).toFixed(8), fill.fillId, 'fill', accountType);
                 }
               }
 
-              const position = updatePosition(newPositions.get(o.symbol), o, update.fills);
-              newPositions.set(o.symbol, position);
+              const positionKey = getPositionKey(o.accountType ?? activeAccountType, o.symbol);
+              const position = updatePosition(newPositions.get(positionKey), o, update.fills);
+              newPositions.set(positionKey, position);
 
               return { ...o, fills: allFills, filledQty: totalFilledQty.toFixed(8), avgPrice, status: update.newStatus, updatedAt: Date.now() };
             });
@@ -845,8 +1239,9 @@ export const useTradingStore = create<TradingState>()(
             for (const filledOrder of filledOcoOrders) {
               if (filledOrder.ocoLinkedOrderId) {
                 const linkedIdx = newOrders.findIndex(o => o.clientOrderId === filledOrder.ocoLinkedOrderId);
-                if (linkedIdx >= 0 && newOrders[linkedIdx].status === 'open') {
-                  newOrders[linkedIdx] = { ...newOrders[linkedIdx], status: 'cancelled', updatedAt: Date.now() };
+                const linked = linkedIdx >= 0 ? newOrders[linkedIdx] : undefined;
+                if (linked && linked.status === 'open') {
+                  newOrders[linkedIdx] = { ...linked, status: 'cancelled', updatedAt: Date.now() };
                   
                   // Unfreeze balance for cancelled order is handled by OCO group
                 }
@@ -876,7 +1271,8 @@ export const useTradingStore = create<TradingState>()(
 
         checkTPSL: (symbol, midPriceStr) => {
           const state = get();
-          const position = state.positions.get(symbol);
+          const activeAccountType = getActiveAccountType();
+          const position = state.positions.get(getPositionKey(activeAccountType, symbol));
           if (!position || position.side === 'flat') return;
 
           const midPrice = new Decimal(midPriceStr);
@@ -897,8 +1293,10 @@ export const useTradingStore = create<TradingState>()(
         updatePositionTPSL: (symbol, takeProfitPrice, stopLossPrice) => {
           set((s) => {
             const newPositions = new Map(s.positions);
-            const position = newPositions.get(symbol);
-            if (position) newPositions.set(symbol, { ...position, takeProfitPrice, stopLossPrice, updatedAt: Date.now() });
+            const activeAccountType = getActiveAccountType();
+            const key = getPositionKey(activeAccountType, symbol);
+            const position = newPositions.get(key);
+            if (position) newPositions.set(key, { ...position, takeProfitPrice, stopLossPrice, updatedAt: Date.now() });
             return { positions: newPositions };
           });
         },
@@ -909,18 +1307,66 @@ export const useTradingStore = create<TradingState>()(
           previousPrices.clear();
         },
 
-        getOrder: (id) => get().orders.find(o => o.clientOrderId === id),
-        getOpenOrders: () => get().orders.filter(o => ['open', 'partial', 'pending', 'submitted'].includes(o.status) && !isConditionalOrder(o.type)),
-        getConditionalOrders: () => get().orders.filter(o => o.status === 'open' && isConditionalOrder(o.type) && !o.isTriggered),
-        getOrderHistory: () => get().orders.filter(o => ['filled', 'cancelled', 'rejected', 'expired'].includes(o.status)),
-        getPosition: (symbol) => get().positions.get(symbol),
-        getOCOOrders: () => get().ocoOrders.filter(o => o.status === 'active'),
+        getOrder: (id) => {
+          const activeAccountType = getActiveAccountType();
+          return get().orders.find(o => o.clientOrderId === id && (o.accountType ?? activeAccountType) === activeAccountType);
+        },
+        getOpenOrders: () => {
+          const activeAccountType = getActiveAccountType();
+          return get().orders.filter(o => (o.accountType ?? activeAccountType) === activeAccountType && ['open', 'partial', 'pending', 'submitted'].includes(o.status) && !isConditionalOrder(o.type));
+        },
+        getConditionalOrders: () => {
+          const activeAccountType = getActiveAccountType();
+          return get().orders.filter(o => (o.accountType ?? activeAccountType) === activeAccountType && o.status === 'open' && isConditionalOrder(o.type) && !o.isTriggered);
+        },
+        getOrderHistory: () => {
+          const activeAccountType = getActiveAccountType();
+          return get().orders.filter(o => (o.accountType ?? activeAccountType) === activeAccountType && ['filled', 'cancelled', 'rejected', 'expired'].includes(o.status));
+        },
+        getPosition: (symbol) => get().positions.get(getPositionKey(getActiveAccountType(), symbol)),
+        getOCOOrders: () => {
+          const activeAccountType = getActiveAccountType();
+          return get().ocoOrders.filter(o => o.status === 'active' && (o.accountType ?? activeAccountType) === activeAccountType);
+        },
       }),
       {
         name: 'paper-trading-storage',
-        version: 4,
+        version: 5,
         storage: customStorage as any,
         partialize: (s) => ({ orders: s.orders, ocoOrders: s.ocoOrders, positions: s.positions, focusMode: false }),
+        migrate: (persistedState: any, version) => {
+          if (version >= 5) return persistedState;
+
+          const activeAccountType: AccountType = persistedState?.orders?.find((order: PaperOrder) => order?.accountType)?.accountType
+            || 'demo';
+
+          const orders = Array.isArray(persistedState?.orders)
+            ? persistedState.orders.map((order: PaperOrder) => ({
+                ...order,
+                accountType: order.accountType || activeAccountType,
+              }))
+            : [];
+
+          const positionsSource = persistedState?.positions;
+          const entries = positionsSource instanceof Map
+            ? Array.from(positionsSource.entries())
+            : Array.isArray(positionsSource)
+              ? positionsSource
+              : Object.entries(positionsSource || {});
+          const positions = new Map<string, Position>();
+          for (const [key, value] of entries as Array<[string, Position]>) {
+            const position = value || ({} as Position);
+            const symbol = position.symbol || key.replace(/^[^:]+:/, '');
+            const accountType = position.accountType || (key.includes(':') ? (key.split(':')[0] as AccountType) : activeAccountType);
+            positions.set(getPositionKey(accountType, symbol), { ...position, accountType, symbol });
+          }
+
+          return {
+            ...persistedState,
+            orders,
+            positions,
+          };
+        },
       }
     )
   )
@@ -958,8 +1404,9 @@ function attemptMatch(order: PaperOrder, orderBook: OrderBook): { fills: Fill[];
 function updatePosition(currentPosition: Position | undefined, order: PaperOrder, fills: Fill[]): Position {
   const symbol = order.symbol;
   const now = Date.now();
+  const accountType = order.accountType;
   if (!currentPosition) {
-    currentPosition = { symbol, side: 'flat', quantity: '0', avgEntryPrice: '0', unrealizedPnl: '0', realizedPnl: '0', updatedAt: now, takeProfitPrice: order.takeProfitPrice, stopLossPrice: order.stopLossPrice };
+    currentPosition = { accountType, symbol, side: 'flat', quantity: '0', avgEntryPrice: '0', unrealizedPnl: '0', realizedPnl: '0', updatedAt: now, takeProfitPrice: order.takeProfitPrice, stopLossPrice: order.stopLossPrice };
   } else {
     if (order.takeProfitPrice) currentPosition.takeProfitPrice = order.takeProfitPrice;
     if (order.stopLossPrice) currentPosition.stopLossPrice = order.stopLossPrice;
@@ -981,5 +1428,5 @@ function updatePosition(currentPosition: Position | undefined, order: PaperOrder
       positionQty = positionQty.minus(fillQty);
     }
   }
-  return { symbol, side: positionQty.gt(0) ? 'long' : 'flat', quantity: Decimal.max(positionQty, 0).toFixed(8), avgEntryPrice: avgEntry.toFixed(8), unrealizedPnl: '0', realizedPnl: realizedPnl.toFixed(8), updatedAt: now };
+  return { accountType, symbol, side: positionQty.gt(0) ? 'long' : 'flat', quantity: Decimal.max(positionQty, 0).toFixed(8), avgEntryPrice: avgEntry.toFixed(8), unrealizedPnl: '0', realizedPnl: realizedPnl.toFixed(8), updatedAt: now };
 }

@@ -9,12 +9,22 @@ import { OrdersPage } from './pages/OrdersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
 import { LandingPage } from './pages/LandingPage';
+import { ManagementPage } from './pages/ManagementPage';
 import { useAuthStore } from './store/authStore';
 
 // Private Route Component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
+  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  return <>{children}</>;
+};
+
+const RoleRoute = ({ allow, children }: { allow: Array<'boss' | 'admin' | 'user'>; children: React.ReactNode }) => {
+  const { isAuthenticated, user, sessionReady } = useAuthStore();
+  if (!sessionReady) return <div className="app-container" style={{ display: 'grid', placeItems: 'center', color: 'white' }}>Loading secure session...</div>;
+  if (!isAuthenticated || !user) return <Navigate to="/auth" replace />;
+  if (!allow.includes(user.role)) return <Navigate to="/trade" replace />;
+  return <>{children}</>;
 };
 
 // Auth page wrapper - standalone without layout
@@ -39,7 +49,15 @@ function LandingPageWrapper() {
 
 export function App() {
   const location = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, sessionReady } = useAuthStore();
+
+  if (!sessionReady) {
+    return (
+      <div className="app-container" style={{ display: 'grid', placeItems: 'center', color: 'white', minHeight: '100vh' }}>
+        Loading secure session...
+      </div>
+    );
+  }
 
   // Auth page is rendered standalone without the adaptive layout
   if (location.pathname === '/auth') {
@@ -59,6 +77,14 @@ export function App() {
   return (
     <Routes>
       <Route element={<AdaptiveLayout />}>
+        <Route
+          path="/manage"
+          element={
+            <RoleRoute allow={['boss', 'admin']}>
+              <ManagementPage />
+            </RoleRoute>
+          }
+        />
         <Route path="/trade" element={<PrivateRoute><TradePage /></PrivateRoute>} />
         <Route path="/markets" element={<PrivateRoute><MarketsPage /></PrivateRoute>} />
         <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />

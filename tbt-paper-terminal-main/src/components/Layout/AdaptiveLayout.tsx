@@ -1,6 +1,8 @@
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { MobileLayout } from './MobileLayout';
 import { DesktopLayout } from './DesktopLayout';
+import { useLiveTradingSync } from '../../hooks/useLiveTradingSync';
+import { useWatchlistTicker } from '../../hooks/useWatchlistTicker';
 
 /**
  * AdaptiveLayout - Root layout component that switches between Mobile and Desktop layouts
@@ -8,6 +10,8 @@ import { DesktopLayout } from './DesktopLayout';
  */
 export function AdaptiveLayout() {
   const isMobile = useIsMobile();
+  useLiveTradingSync();
+  useWatchlistTicker();
 
   // Render completely different component trees for mobile vs desktop
   // This prevents unnecessary re-renders and allows for optimized layouts
@@ -17,4 +21,3 @@ export function AdaptiveLayout() {
 
   return <DesktopLayout />;
 }
-

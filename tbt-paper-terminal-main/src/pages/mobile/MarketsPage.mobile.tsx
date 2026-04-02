@@ -6,6 +6,7 @@ import { Icon } from '../../components/Icon';
 import { MobileSegmentedControl, MobileActionSheet, PullToRefresh } from '../../components/mobile';
 import { MobileHeader } from '../../components/Layout';
 import { useWatchlistStore } from '../../store/watchlistStore';
+import { useMarketTickerLive } from '../../hooks/useMarketTickerLive';
 import {
   fetchAllTickers,
   fetchSparkline,
@@ -38,6 +39,8 @@ export function MobileMarketsPage() {
   const [sparklinesLoaded, setSparklinesLoaded] = useState(false);
 
   const { favorites, toggleFavorite, addSymbol, setSelectedSymbol } = useWatchlistStore();
+
+  useMarketTickerLive(setMarkets);
 
   // Swipe state
   const touchStartX = useRef(0);
@@ -85,7 +88,7 @@ export function MobileMarketsPage() {
 
   useEffect(() => {
     loadData(true);
-    const timer = setInterval(() => loadData(false), 60000);
+    const timer = setInterval(() => loadData(false), 15000);
     return () => clearInterval(timer);
   }, [loadData]);
 
@@ -351,4 +354,3 @@ export function MobileMarketsPage() {
     </div>
   );
 }
-

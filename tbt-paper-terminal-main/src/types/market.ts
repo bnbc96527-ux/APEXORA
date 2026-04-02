@@ -183,6 +183,7 @@ export interface WorkerMessage<T = unknown> {
 export interface SubscribePayload {
   symbol: string;
   streams: ('depth' | 'trade')[];
+  wsBase?: string;
 }
 
 export interface OrderBookUpdatePayload {
@@ -205,4 +206,3 @@ export interface LogPayload {
   event: string;
   data: Record<string, unknown>;
 }
-

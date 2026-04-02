@@ -16,6 +16,7 @@ import { useTradingStore } from '../../store/tradingStore';
 import { useWalletStore } from '../../store/walletStore';
 import { useWatchlistStore, selectSelectedSymbol } from '../../store/watchlistStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import styles from './TradePage.mobile.module.css';
 
 type ContentTab = 'overview' | 'trade' | 'chart' | 'depth' | 'orderbook' | 'trades';
@@ -37,6 +38,7 @@ export function MobileTradePage() {
   const updateOrderBookForMatching = useTradingStore((state) => state.updateOrderBookForMatching);
   const positions = useTradingStore((state) => state.positions);
   const balances = useWalletStore((state) => state.balances);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
 
   const [activeTab, setActiveTab] = useState<ContentTab>('trade');
@@ -82,7 +84,7 @@ export function MobileTradePage() {
 
   // Get current position and account info
   const baseAsset = selectedSymbol.replace('USDT', '');
-  const currentPosition = positions.get(selectedSymbol);
+  const currentPosition = positions.get(`${activeAccountType}:${selectedSymbol}`);
   
   // Calculate total account value in USDT
   const accountInfo = useMemo(() => {
@@ -300,7 +302,7 @@ export function MobileTradePage() {
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>{t.account?.totalValue || 'Equity'}</span>
             <span className={`${styles.infoValue} tabular-nums`}>
-              ${accountInfo.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${accountInfo.totalEquity.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
 
@@ -308,7 +310,7 @@ export function MobileTradePage() {
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>{t.account?.available || 'Avail'} (USDT)</span>
             <span className={`${styles.infoValue} tabular-nums`}>
-              ${accountInfo.usdtAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${accountInfo.usdtAvailable.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
 
@@ -380,4 +382,3 @@ export function MobileTradePage() {
     </div>
   );
 }
-

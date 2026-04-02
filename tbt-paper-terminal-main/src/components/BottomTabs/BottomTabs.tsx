@@ -7,6 +7,7 @@ import { TriggerList } from '../AutomationPanel/TriggerList';
 import { useTradingStore } from '../../store/tradingStore';
 import { useAutomationStore } from '../../store/automationStore';
 import { useWatchlistStore, selectSelectedSymbol } from '../../store/watchlistStore';
+import { useWalletStore } from '../../store/walletStore';
 import { Icon } from '../Icon';
 import styles from './BottomTabs.module.css';
 
@@ -46,9 +47,11 @@ function AutomationStatusBar() {
 export function BottomTabs({ onPriceClick }: BottomTabsProps) {
   const [leftTab, setLeftTab] = useState<LeftTab>('positions');
   const [rightTab, setRightTab] = useState<RightTab>('create');
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   
   const openOrdersCount = useTradingStore((state) => state.getOpenOrders().length);
-  const positionsCount = Array.from(useTradingStore((state) => state.positions.entries())).filter(([_, pos]) => parseFloat(pos.quantity) > 0).length;
+  const positionsCount = Array.from(useTradingStore((state) => state.positions.entries()))
+    .filter(([_, pos]) => (pos.accountType ?? activeAccountType) === activeAccountType && parseFloat(pos.quantity) > 0).length;
   const triggersCount = useAutomationStore((state) => state.triggers.filter(t => t.enabled).length);
   const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
 

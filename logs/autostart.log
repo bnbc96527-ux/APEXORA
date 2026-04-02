@@ -1,0 +1,40 @@
+[2026-03-16T00:06:19.0461754-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-16T00:06:19.7823024-07:00] UI 5173 up: True
+[2026-03-16T00:06:19.7843039-07:00] API 4010 up: True
+[2026-03-16T00:06:19.7873061-07:00] Nothing to start (already running)
+[2026-03-16T00:06:26.0847101-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-16T00:06:26.7032125-07:00] UI 5173 up: True
+[2026-03-16T00:06:26.7052130-07:00] API 4010 up: True
+[2026-03-16T00:06:26.7072131-07:00] Nothing to start (already running)
+[2026-03-16T00:07:11.7520289-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-16T00:07:12.7328080-07:00] UI 5173 up: True
+[2026-03-16T00:07:12.7367993-07:00] API 4010 up: True
+[2026-03-16T00:07:12.7413205-07:00] Nothing to start (already running)
+[2026-03-16T02:26:56.0421277-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-16T02:27:05.7140712-07:00] UI 5173 up: False
+[2026-03-16T02:27:05.7140712-07:00] API 4010 up: False
+[2026-03-16T02:27:05.7453041-07:00] Started UI (npm run dev:ui) PID=10356
+[2026-03-16T02:27:05.7765540-07:00] Started API (npm run dev:api) PID=10372
+[2026-03-16T02:27:08.4774473-07:00] UI 5173 up after start: False
+[2026-03-16T02:27:20.1928471-07:00] API 4010 up after start: False
+[2026-03-16T19:08:14.5657349-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-16T19:08:24.2688610-07:00] UI 5173 up: False
+[2026-03-16T19:08:24.8272261-07:00] API 4010 up: False
+[2026-03-16T19:08:29.3050612-07:00] Started UI (npm run dev:ui) PID=11708
+[2026-03-16T19:08:29.9421886-07:00] Started API (npm run dev:api) PID=12404
+[2026-03-16T19:08:38.4419412-07:00] UI 5173 up after start: False
+[2026-03-16T19:08:43.4825364-07:00] API 4010 up after start: False
+[2026-03-21T17:54:48.1438710-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-03-21T17:54:57.5024137-07:00] UI 5173 up: False
+[2026-03-21T17:54:57.5024137-07:00] API 4010 up: False
+[2026-03-21T17:54:57.6143821-07:00] Started UI (npm run dev:ui) PID=7248
+[2026-03-21T17:54:57.6689077-07:00] Started API (npm run dev:api) PID=3796
+[2026-03-21T17:54:59.7532790-07:00] UI 5173 up after start: True
+[2026-03-21T17:55:00.3194321-07:00] API 4010 up after start: True
+[2026-04-01T21:04:54.3754684-07:00] Starting check in C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main
+[2026-04-01T21:05:04.2275585-07:00] UI 5173 up: False
+[2026-04-01T21:05:04.2315565-07:00] API 4010 up: False
+[2026-04-01T21:05:04.3473289-07:00] Started UI (npm run dev:ui) PID=6256
+[2026-04-01T21:05:04.3673184-07:00] Started API (npm run dev:api) PID=1056
+[2026-04-01T21:05:06.4509172-07:00] UI 5173 up after start: True
+[2026-04-01T21:05:06.9934024-07:00] API 4010 up after start: True

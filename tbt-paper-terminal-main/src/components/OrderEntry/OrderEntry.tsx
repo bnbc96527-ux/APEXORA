@@ -6,7 +6,7 @@ import { useI18n, formatMessage } from '../../i18n';
 import { toast } from '../Toast';
 import { Icon } from '../Icon';
 import { QuantitySlider } from './QuantitySlider';
-import type { OrderSide, OrderType, TriggerDirection, TrailingType } from '../../types/trading';
+import type { OrderSide, OrderType, TrailingType } from '../../types/trading';
 import styles from './OrderEntry.module.css';
 
 // Order type categories for UI
@@ -91,6 +91,8 @@ export function OrderEntry({ priceFromOrderBook, sideFromOrderBook, compact: _co
   const createOCOOrder = useTradingStore((state) => state.createOCOOrder);
   const createTrailingStopOrder = useTradingStore((state) => state.createTrailingStopOrder);
   const setFocusMode = useTradingStore((state) => state.setFocusMode);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
+  const liveTradingEnabled = activeAccountType === 'real' && import.meta.env.VITE_LIVE_TRADING === 'true';
   
   const priceInputRef = useRef<HTMLInputElement>(null);
   const quantityInputRef = useRef<HTMLInputElement>(null);
@@ -359,20 +361,22 @@ export function OrderEntry({ priceFromOrderBook, sideFromOrderBook, compact: _co
   const estimatedPriceValue = type === 'market' && metrics ? metrics.mid : (type === 'limit' ? price : (triggerPrice || '—'));
   const slippageEst = metrics?.slippageEst && metrics.slippageEst !== 'N/A' ? `${metrics.slippageEst}bp` : '—';
   const feeValue = total !== '0' ? (parseFloat(total) * 0.001).toFixed(2) : '0';
-
-  // Get order type label
-  const getOrderTypeLabel = (t: OrderType): string => {
-    const labels: Record<OrderType, string> = {
-      limit: 'Limit',
-      market: 'Market',
-      stop_limit: 'Stop-Limit',
-      take_profit_limit: 'TP-Limit',
-      stop_market: 'Stop-Market',
-      take_profit_market: 'TP-Market',
-      trailing_stop: 'Trailing',
-    };
-    return labels[t] || t;
-  };
+  const midPrice = metrics?.mid || '—';
+  const spreadValue = metrics?.spreadBps !== undefined ? `${metrics.spreadBps.toFixed(2)} bps` : '—';
+  const liveModeLabel = liveTradingEnabled
+    ? 'Live routing enabled'
+    : activeAccountType === 'real'
+      ? 'Real account mode'
+      : 'Paper trading mode';
+  const balanceLabel = side === 'buy'
+    ? `${parseFloat(quoteBalance?.available ?? '0').toFixed(2)} ${quoteAsset}`
+    : `${parseFloat(baseBalance?.available ?? '0').toFixed(6)} ${baseAsset}`;
+  const tradeDetails = [
+    { label: 'Symbol', value: symbol },
+    { label: 'Mid', value: midPrice },
+    { label: 'Spread', value: spreadValue },
+    { label: 'Mode', value: liveModeLabel },
+  ];
 
   return (
     <div className={`card ${styles.container} ${focusMode ? styles.focused : ''} animate-fade`}>
@@ -405,6 +409,24 @@ export function OrderEntry({ priceFromOrderBook, sideFromOrderBook, compact: _co
           >
             OCO
           </button>
+        </div>
+
+        <div className={styles.snapshotPanel}>
+          <div className={styles.snapshotHeader}>
+            <div>
+              <div className={styles.snapshotLabel}>Trade Details</div>
+              <div className={styles.snapshotTitle}>{symbol}</div>
+            </div>
+            <div className={styles.snapshotBadge}>{side.toUpperCase()} {type.toUpperCase()}</div>
+          </div>
+          <div className={styles.snapshotGrid}>
+            {tradeDetails.map((item) => (
+              <div key={item.label} className={styles.snapshotItem}>
+                <span className={styles.snapshotItemLabel}>{item.label}</span>
+                <span className={`${styles.snapshotItemValue} tabular-nums`}>{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Combined Side & Type Toggle Row */}
@@ -596,6 +618,17 @@ export function OrderEntry({ priceFromOrderBook, sideFromOrderBook, compact: _co
           </div>
         </div>
 
+        <div className={styles.detailNote}>
+          <Icon name="sparkles" size="xs" />
+          <span>
+            {liveTradingEnabled
+              ? 'Orders route directly to the exchange. Review every value carefully before submitting.'
+              : activeAccountType === 'real'
+                ? 'Real account mode is selected. Live routing is disabled in this environment.'
+                : 'You are in paper mode. Use the details above to preview the order before submission.'}
+          </span>
+        </div>
+
         {/* Total & Available */}
         <div className={styles.totalRow}>
           <span className={styles.totalLabel}>{t.orderEntry.total}</span>
@@ -605,9 +638,17 @@ export function OrderEntry({ priceFromOrderBook, sideFromOrderBook, compact: _co
         <div className={styles.balanceRow}>
           <span className={styles.balanceLabel}>{t.orderEntry.available}</span>
           <span className={`${styles.balanceValue} tabular-nums`}>
-            {side === 'buy' ? `${parseFloat(quoteBalance?.available ?? '0').toFixed(2)} ${quoteAsset}` : `${parseFloat(baseBalance?.available ?? '0').toFixed(6)} ${baseAsset}`}
+            {balanceLabel}
           </span>
         </div>
+
+        {/* Live Trading Warning */}
+        {liveTradingEnabled && (
+          <div className={styles.liveWarning}>
+            <Icon name="alert-triangle" size="xs" />
+            <span>Live trading is enabled. Orders will be sent to the exchange.</span>
+          </div>
+        )}
 
         {/* Data Confidence Warning */}
         {dataConfidence.level !== 'live' && (

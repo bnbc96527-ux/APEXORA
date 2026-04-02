@@ -1,5 +1,6 @@
 import { useMarketStore, selectConnectionStatus, selectDataConfidence, selectNetworkHealth } from '../../store/marketStore';
 import { useI18n, type Locale } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import type { NetworkEvent, NetworkEventType } from '../../types/market';
 import styles from './DiagnosticsDrawer.module.css';
@@ -98,7 +99,7 @@ function NetworkEventItem({ event }: { event: NetworkEvent }) {
   return (
     <div className={`${styles.timelineEvent} ${getEventClass(event.type)}`}>
       <div className={styles.timelineTime}>
-        {new Date(event.timestamp).toLocaleTimeString('en-US', {
+        {new Date(event.timestamp).toLocaleTimeString(getUiLocale(), {
           hour12: false,
           hour: '2-digit',
           minute: '2-digit',
@@ -365,4 +366,3 @@ export function DiagnosticsDrawer({ isOpen, onClose }: DiagnosticsDrawerProps) {
     </>
   );
 }
-

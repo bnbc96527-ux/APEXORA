@@ -63,6 +63,8 @@ function formatCrypto(value: string | number): string {
 
 export function Positions() {
   const { t } = useI18n();
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
+  const liveTradingEnabled = activeAccountType === 'real' && import.meta.env.VITE_LIVE_TRADING === 'true';
   const balances = useWalletStore(selectBalances);
   const positions = useTradingStore((state) => state.positions);
   const createOrder = useTradingStore((state) => state.createOrder);
@@ -99,6 +101,7 @@ export function Positions() {
   } else if (typeof positions === 'object' && positions !== null) {
     positionEntries = Object.entries(positions);
   }
+  positionEntries = positionEntries.filter(([, pos]) => (pos?.accountType ?? activeAccountType) === activeAccountType);
   
   let totalPositionValue = new Decimal(0);
   let totalUnrealizedPnl = new Decimal(0);
@@ -206,7 +209,9 @@ export function Positions() {
             </div>
           </div>
         </div>
-        <button className={styles.resetBtn} onClick={handleReset}>{t.common.reset}</button>
+        {activeAccountType === 'demo' && (
+          <button className={styles.resetBtn} onClick={handleReset}>{t.common.reset}</button>
+        )}
       </div>
       
       <div className={styles.body}>

@@ -1,0 +1,286 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.container :global(.card) {
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--electric-blue) 18%, var(--border-subtle));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--bg-secondary) 94%, transparent));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.container :global(.card-header) {
+  padding: 0.95rem 1.1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--electric-blue) 12%, var(--border-subtle));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-hover) 92%, transparent), color-mix(in srgb, var(--surface) 96%, transparent));
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.container :global(.card-body) {
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  height: 1.75rem;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.mobileNote {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  padding: 0.35rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, transparent), color-mix(in srgb, var(--bg-secondary) 94%, transparent));
+  border: 1px solid var(--border-subtle);
+}
+
+.tabBtn {
+  height: 2.4rem;
+  padding-inline: 0.95rem;
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all 180ms ease;
+}
+
+.section {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-4);
+}
+
+.statLabel {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statValue {
+  margin-top: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+}
+
+.statSub {
+  margin-top: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.splitRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .splitRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table th,
+.table td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 84%, transparent);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: color-mix(in srgb, var(--text-secondary) 92%, white);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-hover) 92%, transparent), color-mix(in srgb, var(--surface) 96%, transparent));
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table td {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.table tbody tr {
+  transition: background 160ms ease;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--electric-blue) 5%, transparent);
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.checkboxRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.25rem;
+}
+
+.input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 6.5rem;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.container :global(.btn) {
+  border-radius: 999px;
+  padding-inline: 1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pillGood {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+  color: rgba(34, 197, 94, 0.95);
+}
+
+.pillWarn {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+  color: rgba(245, 158, 11, 0.95);
+}
+
+.pillBad {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: rgba(239, 68, 68, 0.95);
+}

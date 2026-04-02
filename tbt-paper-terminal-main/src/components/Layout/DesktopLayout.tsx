@@ -5,7 +5,7 @@ import { LanguageToggle } from '../LanguageToggle';
 import { ToastContainer } from '../Toast';
 import { ShortcutsHelp } from '../ShortcutsHelp';
 import { SoundToggle } from '../SoundToggle';
-import { TopNav, AssetSnapshot, AccountMenu } from './index';
+import { TopNav, AssetSnapshot, AccountMenu, AccountModeSwitcher } from './index';
 import { Icon } from '../Icon';
 import { useI18n } from '../../i18n';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -53,6 +53,7 @@ export function DesktopLayout() {
 
         <div className={styles.actions}>
           <AssetSnapshot />
+          <AccountModeSwitcher />
           <Link 
             to="/settings" 
             className={styles.settingsBtn}
@@ -87,4 +88,3 @@ export function DesktopLayout() {
     </div>
   );
 }
-

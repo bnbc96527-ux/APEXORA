@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMarketStore, selectConnectionStatus, selectDataConfidence, selectLogs } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import styles from './ObservabilityPanel.module.css';
 
@@ -42,7 +43,12 @@ function LogItem({ log }: { log: LogEntry }) {
         <span className={styles.logEvent}>{log.event}</span>
         {log.timestamp && (
           <span className={`${styles.logTime} tabular-nums`}>
-            {new Date(log.timestamp).toLocaleTimeString()}
+            {new Date(log.timestamp).toLocaleTimeString(getUiLocale(), {
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
           </span>
         )}
       </div>
@@ -240,4 +246,3 @@ export function ObservabilityPanel() {
     </div>
   );
 }
-

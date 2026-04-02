@@ -1,0 +1,76 @@
+[2m7:03:16 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/auth/me[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1118:18)
+    at afterConnectMultiple (node:net:1685:7)
+[2m7:03:17 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/auth/refresh[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1118:18)
+    at afterConnectMultiple (node:net:1685:7)
+[2m7:03:48 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/auth/login[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1118:18)
+    at afterConnectMultiple (node:net:1685:7)
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts[39m:74:6
+[33m  
+  [33mThe symbol "hashLocal" has already been declared[33m
+  72 |  const normalize = (value: string) => String(value || '').trim().toLowerCase();
+  73 |  
+  74 |  const hashLocal = (value: string) => {
+     |        ^
+  75 |    let hash = 0;
+  76 |    for (let i = 0; i < value.length; i += 1) {
+  [39m
+      at failureErrorWithLog (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:1472:15)
+      at C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:755:50
+      at responseCallbacks.<computed> (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:622:9)
+      at handleIncomingPacket (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:677:12)
+      at Socket.readFromStdout (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:600:7)
+      at Socket.emit (node:events:519:28)
+      at addChunk (node:internal/streams/readable:559:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+      at Readable.push (node:internal/streams/readable:390:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+[2m7:20:52 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared
+[2m7:20:53 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 1 error:
+C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts:74:6: ERROR: The symbol "hashLocal" has already been declared[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/authStore.ts[39m:74:6
+[33m  
+  [33mThe symbol "hashLocal" has already been declared[33m
+  72 |  const normalize = (value: string) => String(value || '').trim().toLowerCase();
+  73 |  
+  74 |  const hashLocal = (value: string) => {
+     |        ^
+  75 |    let hash = 0;
+  76 |    for (let i = 0; i < value.length; i += 1) {
+  [39m
+      at failureErrorWithLog (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:1472:15)
+      at C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:755:50
+      at responseCallbacks.<computed> (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:622:9)
+      at handleIncomingPacket (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:677:12)
+      at Socket.readFromStdout (C:\Users\FAMILY COMPUTER\Documents\tbt-paper-terminal-main\tbt-paper-terminal-main\node_modules\esbuild\lib\main.js:600:7)
+      at Socket.emit (node:events:519:28)
+      at addChunk (node:internal/streams/readable:559:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+      at Readable.push (node:internal/streams/readable:390:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)

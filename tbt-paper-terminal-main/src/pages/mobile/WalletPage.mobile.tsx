@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWalletStore, selectBalances } from '../../store/walletStore';
+import { useWalletStore, selectBalances, selectDeposits } from '../../store/walletStore';
 import { useWatchlistStore } from '../../store/watchlistStore';
 import { useI18n } from '../../i18n';
 import { Icon } from '../../components/Icon';
 import { MobileHeader } from '../../components/Layout';
 import { PullToRefresh } from '../../components/mobile';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
+import { getUiLocale } from '../../utils/locale';
 import {
   DepositDrawer,
   WithdrawDrawer,
@@ -20,8 +21,10 @@ export function MobileWalletPage() {
   const navigate = useNavigate();
   const { trigger } = useHapticFeedback();
   const methodsRef = useRef<HTMLDivElement>(null);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const stage = useWalletStore((state) => state.getOnboardingStage());
   const balances = useWalletStore(selectBalances);
+  const deposits = useWalletStore(selectDeposits);
   const performance = useWalletStore((state) => state.performanceMetrics);
   const setSelectedSymbol = useWatchlistStore((state) => state.setSelectedSymbol);
 
@@ -82,10 +85,17 @@ export function MobileWalletPage() {
     return balances.filter(b => parseFloat(b.total) > 0);
   }, [balances]);
 
+  const pendingRealDeposits = useMemo(
+    () => deposits.filter((d) => d.accountType === 'real' && (d.status === 'pending' || d.status === 'pending_approval')),
+    [deposits]
+  );
+  const hasApprovedBalance = useMemo(() => balances.some((b) => parseFloat(b.total) > 0), [balances]);
+  const hideBalancesAndHistory = activeAccountType === 'real' && pendingRealDeposits.length > 0 && !hasApprovedBalance;
+
   // Format balance for display
   const formatBalance = (value: number, decimals = 2) => {
     if (hideBalance) return '****';
-    return value.toLocaleString('en-US', {
+    return value.toLocaleString(getUiLocale(), {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     });
@@ -109,7 +119,9 @@ export function MobileWalletPage() {
         title={t.wallet?.title || 'Wallet'}
         rightAction={
           <span className={styles.simulatedBadge}>
-            {t.wallet?.simulatedBadge || 'Simulated'}
+            {activeAccountType === 'real'
+              ? (t.wallet?.liveBadge || 'Real')
+              : (t.wallet?.simulatedBadge || 'Simulated')}
           </span>
         }
       />
@@ -126,8 +138,32 @@ export function MobileWalletPage() {
       )}
 
       <div className={styles.scrollContent}>
+        {hideBalancesAndHistory && (
+          <div className={styles.pendingReviewCard}>
+            <div className={styles.pendingReviewHeader}>
+              <Icon name="shield" size="sm" />
+              <span>{t.wallet?.depositPending || 'Pending approval'}</span>
+            </div>
+            <div className={styles.pendingReviewBody}>
+              {pendingRealDeposits.length === 1
+                ? `${pendingRealDeposits[0]!.amount} ${pendingRealDeposits[0]!.asset} is waiting for admin or boss approval.`
+                : `${pendingRealDeposits.length} deposits are waiting for admin or boss approval.`}
+              {' '}
+              The total balance and history will appear after approval.
+            </div>
+            <div className={styles.pendingList}>
+              {pendingRealDeposits.slice(0, 3).map((deposit) => (
+                <div key={deposit.depositId} className={styles.pendingItem}>
+                  <span>{deposit.depositId}</span>
+                  <span>{deposit.amount} {deposit.asset}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Immersive Balance Card */}
-        <div className={styles.balanceCard}>
+        <div className={`${styles.balanceCard} ${hideBalancesAndHistory ? styles.hiddenBlock : ''}`}>
           <div className={styles.balanceCardBg} />
           
           <div className={styles.balanceHeader}>
@@ -149,6 +185,20 @@ export function MobileWalletPage() {
             </span>
             <span className={styles.equivalent}>USDT</span>
           </div>
+
+          {activeAccountType === 'real' && (
+            <div className={styles.approvalNotice}>
+              <div className={styles.approvalNoticeHeader}>
+                <Icon name="shield" size="sm" />
+                <span>{t.wallet?.depositPending || 'Pending approval'}</span>
+              </div>
+              <div className={styles.approvalNoticeBody}>
+                {pendingRealDeposits.length > 0
+                  ? `${pendingRealDeposits.reduce((sum, item) => sum + Number(item.amount), 0).toFixed(2)} USDT is waiting for admin or boss approval.`
+                  : 'Real balance stays at 0 until an approved deposit is posted.'}
+              </div>
+            </div>
+          )}
 
           {/* Performance Metrics */}
           <div className={styles.performanceRow}>
@@ -204,7 +254,7 @@ export function MobileWalletPage() {
         </div>
 
         {/* Asset List */}
-        <div className={styles.assetSection}>
+        <div className={`${styles.assetSection} ${hideBalancesAndHistory ? styles.hiddenBlock : ''}`}>
           <div className={styles.sectionHeader}>
             <span className={styles.sectionTitle}>
               {t.wallet?.assets || 'Assets'}
@@ -295,4 +345,3 @@ export function MobileWalletPage() {
     </PullToRefresh>
   );
 }
-

@@ -1,22 +1,26 @@
+.root {
+  position: relative;
+}
+
 .toggle {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: var(--text-primary);
   font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-mono);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .toggle:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.28);
 }
 
 .toggle:active {
@@ -25,18 +29,107 @@
 
 .icon {
   font-size: 1rem;
+  color: var(--electric-blue);
 }
 
 .text {
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
-  .text {
-    display: none;
-  }
+.chevron {
+  color: rgba(255, 255, 255, 0.55);
+  transition: transform 0.2s ease;
 }
 
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+  width: 240px;
+  padding: 8px;
+  border-radius: 18px;
+  background: rgba(12, 14, 18, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+}
+
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.menuItem:hover {
+  background: rgba(0, 212, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.active {
+  background: rgba(0, 212, 255, 0.14);
+}
+
+.flag {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--electric-blue);
+}
+
+.labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.labelMain {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.labelSub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.check {
+  color: var(--success-500);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+  .text {
+    display: inline;
+  }
+
+  .menu {
+    right: auto;
+    left: 0;
+    width: min(90vw, 260px);
+  }
+}
 
 
 

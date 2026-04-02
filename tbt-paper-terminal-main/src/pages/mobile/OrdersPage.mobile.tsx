@@ -1,16 +1,20 @@
 import { useState, useMemo } from 'react';
 import { useTradingStore } from '../../store/tradingStore';
+import { useWalletStore } from '../../store/walletStore';
 import { useI18n } from '../../i18n';
 import { Icon } from '../../components/Icon';
 import { MobileHeader } from '../../components/Layout';
 import { MobileSegmentedControl, MobileDrawer } from '../../components/mobile';
+import { useWatchlistStore, selectSelectedSymbol } from '../../store/watchlistStore';
+import { useLiveHistorySync } from '../../hooks/useLiveHistorySync';
+import { getUiLocale } from '../../utils/locale';
 import type { PaperOrder, OrderStatus } from '../../types/trading';
 import styles from './OrdersPage.mobile.module.css';
 
 type TabType = 'open' | 'history' | 'trades';
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('en-US', {
+  return new Date(timestamp).toLocaleString(getUiLocale(), {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -41,6 +45,8 @@ function getStatusConfig(status: OrderStatus) {
     filled: { text: 'Filled', className: styles.statusFilled || '' },
     cancelled: { text: 'Cancelled', className: styles.statusCancelled || '' },
     rejected: { text: 'Rejected', className: styles.statusRejected || '' },
+    expired: { text: 'Expired', className: styles.statusCancelled || '' },
+    triggered: { text: 'Triggered', className: styles.statusSubmitted || '' },
   };
   return configs[status] || { text: status, className: '' };
 }
@@ -167,9 +173,23 @@ export function MobileOrdersPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('history');
   const [selectedOrder, setSelectedOrder] = useState<PaperOrder | null>(null);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
+  const liveTradingEnabled = activeAccountType === 'real' && import.meta.env.VITE_LIVE_TRADING === 'true';
 
-  const orders = useTradingStore((state) => state.orders);
+  const orders = useTradingStore((state) => state.orders.filter((o) => (o.accountType ?? activeAccountType) === activeAccountType));
   const cancelOrder = useTradingStore((state) => state.cancelOrder);
+  const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
+  const watchlistSymbols = useWatchlistStore((state) => state.symbols.map((s) => s.symbol));
+
+  const symbolsToSync = useMemo(() => {
+    const set = new Set<string>();
+    if (selectedSymbol) set.add(selectedSymbol);
+    orders.forEach((o) => set.add(o.symbol));
+    watchlistSymbols.slice(0, 5).forEach((s) => set.add(s));
+    return Array.from(set).slice(0, 10);
+  }, [selectedSymbol, orders, watchlistSymbols]);
+
+  useLiveHistorySync(liveTradingEnabled ? symbolsToSync : []);
 
   const openOrders = useMemo(() =>
     orders.filter(o => ['pending', 'submitted', 'open', 'partial'].includes(o.status))
@@ -347,4 +367,3 @@ export function MobileOrdersPage() {
     </div>
   );
 }
-

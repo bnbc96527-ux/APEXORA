@@ -20,9 +20,10 @@ export function TradeOverview({ onTradeClick }: TradeOverviewProps) {
   const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
   const positions = useTradingStore((state) => state.positions);
   const balances = useWalletStore((state) => state.balances);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
 
   const baseAsset = selectedSymbol.replace('USDT', '');
-  const currentPosition = positions.get(selectedSymbol);
+  const currentPosition = positions.get(`${activeAccountType}:${selectedSymbol}`);
 
   // Metrics processing
   const displayMetrics = useMemo(() => {
@@ -193,4 +194,3 @@ export function TradeOverview({ onTradeClick }: TradeOverviewProps) {
     </div>
   );
 }
-

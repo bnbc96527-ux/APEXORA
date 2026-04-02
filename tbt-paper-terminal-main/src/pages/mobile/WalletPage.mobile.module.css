@@ -14,6 +14,10 @@
   flex-direction: column;
 }
 
+.hiddenBlock {
+  display: none;
+}
+
 /* Simulated Badge */
 .simulatedBadge {
   padding: var(--space-1) var(--space-2);
@@ -115,6 +119,78 @@
   font-size: var(--font-size-xs);
   opacity: 0.6;
   margin-left: 4px;
+}
+
+.approvalNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.approvalNoticeHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.approvalNoticeBody {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.pendingReviewCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.pendingReviewHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: #fbbf24;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pendingReviewBody {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.pendingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pendingItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
 }
 
 /* Performance Row */
@@ -371,4 +447,3 @@
   opacity: 0.9;
   transform: scale(0.98);
 }
-

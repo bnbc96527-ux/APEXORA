@@ -40,7 +40,9 @@ export const PasswordField: React.FC<Props> = ({
     return { label: 'Strong', color: '#22c55e' };
   };
 
-  const strengthInfo = computeStrength(strength);
+  const strengthInfo = strengthLabel
+    ? { label: strengthLabel, color: computeStrength(strength).color }
+    : computeStrength(strength);
 
   return (
     <div className={styles.wrapper}>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 // 交易对数据
 export interface SymbolInfo {
@@ -107,8 +107,15 @@ interface WatchlistState {
   addSymbol: (symbol: SymbolInfo) => void;
   removeSymbol: (symbol: string) => void;
   updateSymbolPrice: (symbol: string, price: string, priceChange24h?: number) => void;
+  updateSymbolPrices: (updates: Record<string, { price: string; priceChange24h?: number }>) => void;
   reorderSymbols: (fromIndex: number, toIndex: number) => void;
 }
+
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => undefined,
+  removeItem: () => undefined,
+};
 
 export const useWatchlistStore = create<WatchlistState>()(
   persist(
@@ -171,6 +178,23 @@ export const useWatchlistStore = create<WatchlistState>()(
           ),
         });
       },
+
+      updateSymbolPrices: (updates) => {
+        const keys = Object.keys(updates || {});
+        if (keys.length === 0) return;
+        const { symbols } = get();
+        set({
+          symbols: symbols.map((s) => {
+            const update = updates[s.symbol];
+            if (!update) return s;
+            return {
+              ...s,
+              price: update.price ?? s.price,
+              priceChange24h: update.priceChange24h ?? s.priceChange24h,
+            };
+          }),
+        });
+      },
       
       reorderSymbols: (fromIndex, toIndex) => {
         const { symbols } = get();
@@ -184,6 +208,9 @@ export const useWatchlistStore = create<WatchlistState>()(
     }),
     {
       name: 'watchlist_state',
+      storage: createJSONStorage(() =>
+        typeof window === 'undefined' || !window.localStorage ? noopStorage : window.localStorage
+      ),
       version: 2,
       migrate: (persistedState: any, version: number) => {
         if (version < 2) {
@@ -245,4 +272,3 @@ export const selectFilteredSymbols = (state: WatchlistState) => {
     return 0;
   });
 };
-

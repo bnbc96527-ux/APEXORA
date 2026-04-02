@@ -1,6 +1,7 @@
 import { useRef, useEffect, useMemo, memo } from 'react';
 import { useMarketStore, selectOrderBook, selectMetrics, selectDataConfidence } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import type { OrderBookLevel } from '../../types/market';
 import styles from './OrderBook.module.css';
@@ -50,7 +51,7 @@ PriceLevel.displayName = 'PriceLevel';
 
 function formatPrice(price: string): string {
   const num = parseFloat(price);
-  if (num >= 1000) return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (num >= 1000) return num.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (num >= 1) return num.toFixed(4);
   return num.toFixed(6);
 }

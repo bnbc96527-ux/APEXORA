@@ -20,13 +20,23 @@ interface AccountMetrics {
 export function AccountRibbon() {
   const { t } = useI18n();
   const balances = useWalletStore(selectBalances);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const positions = useTradingStore((state) => state.positions);
   const metrics = useMarketStore(selectMetrics);
   const orderBook = useMarketStore(selectOrderBook);
   const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
+  const watchlistSymbols = useWatchlistStore((state) => state.symbols);
 
   const currentSymbol = orderBook?.symbol || selectedSymbol;
   const currentSymbolMidPrice = metrics ? new Decimal(metrics.mid) : new Decimal(0);
+
+  const watchlistPriceMap = useMemo(() => {
+    const map = new Map<string, string>();
+    watchlistSymbols.forEach((s) => {
+      if (s.price) map.set(s.symbol, s.price);
+    });
+    return map;
+  }, [watchlistSymbols]);
 
   const accountMetrics = useMemo((): AccountMetrics => {
     // Get USDT balance
@@ -51,15 +61,26 @@ export function AccountRibbon() {
         if (!pos || pos.quantity === undefined || pos.avgEntryPrice === undefined) {
           return false;
         }
-        return pos.side === 'long' && new Decimal(pos.quantity).gt(0);
+        return (pos.accountType ?? activeAccountType) === activeAccountType && pos.side === 'long' && new Decimal(pos.quantity).gt(0);
       })
       .forEach(([symbol, pos]) => {
         const qty = new Decimal(pos.quantity || '0');
         const avgEntry = new Decimal(pos.avgEntryPrice || '0');
         
         const isCurrentSymbol = symbol === currentSymbol;
-        const currentPrice = isCurrentSymbol ? currentSymbolMidPrice : avgEntry;
-        const hasPrice = isCurrentSymbol && currentSymbolMidPrice.gt(0);
+        let currentPrice = avgEntry;
+        let hasPrice = false;
+
+        if (isCurrentSymbol && currentSymbolMidPrice.gt(0)) {
+          currentPrice = currentSymbolMidPrice;
+          hasPrice = true;
+        } else {
+          const watchPrice = watchlistPriceMap.get(symbol);
+          if (watchPrice && parseFloat(watchPrice) > 0) {
+            currentPrice = new Decimal(watchPrice);
+            hasPrice = true;
+          }
+        }
         
         const value = qty.times(currentPrice);
         const unrealizedPnl = hasPrice ? qty.times(currentPrice.minus(avgEntry)) : new Decimal(0);
@@ -69,7 +90,7 @@ export function AccountRibbon() {
           totalUnrealizedPnl = totalUnrealizedPnl.plus(unrealizedPnl);
         } else {
           totalPositionValue = totalPositionValue.plus(qty.times(avgEntry));
-          if (isCurrentSymbol) hasRealTimePrice = false;
+          hasRealTimePrice = false;
         }
       });
 
@@ -86,7 +107,7 @@ export function AccountRibbon() {
       unrealizedPnlPercent,
       hasRealTimePrice,
     };
-  }, [balances, positions, currentSymbol, currentSymbolMidPrice]);
+  }, [balances, positions, currentSymbol, currentSymbolMidPrice, watchlistPriceMap]);
 
   const formatUSDT = (value: Decimal): string => {
     return value.toFixed(2);
@@ -141,4 +162,3 @@ export function AccountRibbon() {
     </div>
   );
 }
-

@@ -1,3 +1,5 @@
+export type AccountType = 'real' | 'demo';
+
 // ===== Wallet Types =====
 
 // ===== Account =====
@@ -7,6 +9,7 @@ export interface Account {
   accountId: string;           // PTT-xxxxxx
   status: AccountStatus;
   createdAt: number;
+  type?: AccountType;
 }
 
 // ===== Wallet Balance =====
@@ -39,10 +42,11 @@ export interface CryptoAddress {
 }
 
 // ===== Deposit =====
-export type DepositStatus = 'pending' | 'confirmed' | 'failed';
+export type DepositStatus = 'pending' | 'pending_approval' | 'approved' | 'confirmed' | 'rejected' | 'failed';
 
 export interface Deposit {
   depositId: string;
+  accountType: AccountType;
   asset: string;
   amount: string;
   sourceType: 'bank' | 'crypto';
@@ -50,13 +54,18 @@ export interface Deposit {
   status: DepositStatus;
   createdAt: number;
   confirmedAt?: number;
+  approvedAt?: number;
+  approvedBy?: string;
+  rejectedAt?: number;
+  rejectionReason?: string;
 }
 
 // ===== Withdraw =====
-export type WithdrawStatus = 'processing' | 'completed' | 'failed';
+export type WithdrawStatus = 'pending_approval' | 'approved' | 'processing' | 'completed' | 'rejected' | 'failed';
 
 export interface Withdraw {
   withdrawId: string;
+  accountType: AccountType;
   asset: string;
   amount: string;
   fee: string;
@@ -64,6 +73,10 @@ export interface Withdraw {
   destinationId: string;
   status: WithdrawStatus;
   createdAt: number;
+  approvedAt?: number;
+  approvedBy?: string;
+  rejectedAt?: number;
+  rejectionReason?: string;
   completedAt?: number;
 }
 
@@ -85,6 +98,7 @@ export type ReferenceType = 'deposit' | 'withdraw' | 'order' | 'fill' | 'transfe
 
 export interface LedgerEntry {
   entryId: string;
+  accountType: AccountType;
   type: LedgerType;
   direction: '+' | '-';     // 增加或减少
   asset: string;
@@ -116,5 +130,4 @@ export interface PerformanceMetrics {
   peakEquity: string;       // 最高权益 (USDT)
   totalRealizedPnl: string; // 总已实现盈亏 (USDT)
 }
-
 

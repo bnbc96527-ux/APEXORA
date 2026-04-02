@@ -76,7 +76,7 @@ export function TradePage() {
           minSize={5} 
           collapsible 
           onResize={(size) => {
-            setIsSidebarCollapsed(size.asPercentage === 0);
+            setIsSidebarCollapsed(size === 0);
           }}
           className={styles.leftPanel}
         >
@@ -122,12 +122,17 @@ export function TradePage() {
 
         <ResizeHandle />
 
-        {/* Right Sidebar: Order Entry + OrderBook */}
+        {/* Right Sidebar: OrderBook + Order Entry */}
         <Panel defaultSize={18} minSize={12} className={styles.rightPanel}>
           <div className={styles.rightContent}>
             <ErrorBoundary name="Risk" fallback={<PanelFallback name="RISK" />}>
               <RiskRibbon />
             </ErrorBoundary>
+            <div className={styles.orderBookWrapper}>
+              <ErrorBoundary name="OrderBook" fallback={<PanelFallback name="ORDERBOOK" />}>
+                <OrderBook onPriceClick={handlePriceClick} />
+              </ErrorBoundary>
+            </div>
             <div className={styles.orderEntryWrapper}>
               <ErrorBoundary name="OrderEntry" fallback={<PanelFallback name="ORDER_ENTRY" />}>
                 <OrderEntry 
@@ -135,11 +140,6 @@ export function TradePage() {
                   sideFromOrderBook={selectedSide} 
                   key={selectedPrice?.timestamp}
                 />
-              </ErrorBoundary>
-            </div>
-            <div className={styles.orderBookWrapper}>
-              <ErrorBoundary name="OrderBook" fallback={<PanelFallback name="ORDERBOOK" />}>
-                <OrderBook onPriceClick={handlePriceClick} />
               </ErrorBoundary>
             </div>
           </div>

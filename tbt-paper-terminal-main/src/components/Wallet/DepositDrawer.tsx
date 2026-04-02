@@ -1,5 +1,11 @@
 import { useState, useMemo } from 'react';
-import { useWalletStore, selectPaymentMethods, selectCryptoAddresses, selectDeposits } from '../../store/walletStore';
+import {
+  useWalletStore,
+  selectActiveAccountType,
+  selectPaymentMethods,
+  selectCryptoAddresses,
+  selectDeposits,
+} from '../../store/walletStore';
 import { useI18n } from '../../i18n';
 import { Icon } from '../Icon';
 import { StatusCard } from './StatusCard';
@@ -12,17 +18,18 @@ interface DepositDrawerProps {
 
 export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
   const { t } = useI18n();
+  const activeAccountType = useWalletStore(selectActiveAccountType);
   const paymentMethods = useWalletStore(selectPaymentMethods);
   const cryptoAddresses = useWalletStore(selectCryptoAddresses);
   const deposits = useWalletStore(selectDeposits);
   const createDeposit = useWalletStore((state) => state.createDeposit);
-  const confirmDeposit = useWalletStore((state) => state.confirmDeposit);
 
   const [asset, setAsset] = useState<'USDT' | 'CNY'>('USDT');
   const [amount, setAmount] = useState('');
   const [sourceType, setSourceType] = useState<'bank' | 'crypto'>('crypto');
   const [sourceId, setSourceId] = useState('');
   const [pendingDepositId, setPendingDepositId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Get current pending deposit
   const pendingDeposit = useMemo(() => {
@@ -51,18 +58,22 @@ export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
   };
 
   const handleSubmit = () => {
+    setSubmitError(null);
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0 || numAmount > 10000000) return;
     if (!sourceId) return;
 
     const deposit = createDeposit(asset, amount, sourceType, sourceId);
-    setPendingDepositId(deposit.depositId);
-  };
-
-  const handleConfirmDemo = () => {
-    if (pendingDepositId) {
-      confirmDeposit(pendingDepositId);
+    if (!deposit) {
+      setSubmitError(
+        activeAccountType === 'demo'
+          ? t.wallet?.depositRealOnlyHint || 'Switch to the real account to submit a deposit request.'
+          : t.wallet?.depositSubmitFailed || 'Unable to create the deposit request.'
+      );
+      return;
     }
+
+    setPendingDepositId(deposit.depositId);
   };
 
   const handleClose = () => {
@@ -81,6 +92,8 @@ export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
   }, [amount, sourceId]);
 
   const hasSources = paymentMethods.length > 0 || cryptoAddresses.length > 0;
+  const isPendingDeposit = pendingDeposit && (pendingDeposit.status === 'pending' || pendingDeposit.status === 'pending_approval');
+  const isApprovedDeposit = pendingDeposit && (pendingDeposit.status === 'approved' || pendingDeposit.status === 'confirmed');
 
   if (!isOpen) return null;
 
@@ -100,22 +113,26 @@ export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
 
         <div className={styles.content}>
           {/* Show status card if deposit is pending */}
-          {pendingDeposit && pendingDeposit.status === 'pending' ? (
+          {isPendingDeposit ? (
             <StatusCard
               status="pending"
-              title={t.wallet?.depositPending || 'Processing Deposit...'}
+              title={t.wallet?.depositPending || 'Awaiting Approval'}
               subtitle={`${pendingDeposit.amount} ${pendingDeposit.asset}`}
               estimatedSeconds={8}
-              onConfirmDemo={handleConfirmDemo}
-              confirmDemoLabel={t.wallet?.confirmForDemo || 'Confirm for Demo'}
-              confirmDemoHint={t.wallet?.confirmForDemoHint || 'Skip waiting for demo purposes'}
             />
-          ) : pendingDeposit && pendingDeposit.status === 'confirmed' ? (
+          ) : isApprovedDeposit ? (
             <StatusCard
               status="success"
               title={t.wallet?.depositConfirmed || 'Deposit Confirmed'}
               subtitle={`+${pendingDeposit.amount} ${pendingDeposit.asset}`}
             />
+          ) : submitError ? (
+            <div className={styles.warningCard}>
+              <div className={styles.warningInfo}>
+                <Icon name="alert-triangle" size="sm" />
+                <span>{submitError}</span>
+              </div>
+            </div>
           ) : (
             <>
               {/* No sources warning */}
@@ -241,11 +258,16 @@ export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
               >
                 {t.wallet?.deposit || 'Deposit'}
               </button>
+
+              <div className={styles.hint}>
+                {t.wallet?.depositApprovalHint ||
+                  'Real deposits stay pending until approved by an admin or boss, and the real balance remains 0 until that approval is posted.'}
+              </div>
             </>
           )}
 
           {/* Close button after completion */}
-          {pendingDeposit && pendingDeposit.status === 'confirmed' && (
+          {isApprovedDeposit && (
             <button className={styles.doneButton} onClick={handleClose}>
               {t.common?.close || 'Close'}
             </button>
@@ -255,4 +277,3 @@ export function DepositDrawer({ isOpen, onClose }: DepositDrawerProps) {
     </>
   );
 }
-

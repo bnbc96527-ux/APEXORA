@@ -1,0 +1,86 @@
+
+> dev
+> concurrently -n ui,api -c green,cyan "npm run dev:ui" "npm run dev:api"
+
+[ui] 
+[ui] > dev:ui
+[ui] > npm --prefix tbt-paper-terminal-main run dev --
+[ui] 
+[api] 
+[api] > dev:api
+[api] > npm --prefix tbt-paper-terminal-main run server --
+[api] 
+[api] 
+[api] > tbt-paper-terminal@0.1.0 server
+[api] > node --preserve-symlinks --preserve-symlinks-main server/index.js
+[api] 
+[ui] 
+[ui] > tbt-paper-terminal@0.1.0 dev
+[ui] > node --preserve-symlinks --preserve-symlinks-main ./node_modules/vite/bin/vite.js
+[ui] 
+[api] Live trading server listening on http://localhost:4010
+[ui] 
+[ui]   [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m2298[22m[2m[0m ms[22m
+[ui] 
+[ui]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[ui] [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[ui] [2m4:29:56 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TradePage.tsx, /src/pages/AssetDetailPage.tsx, /src/pages/MarketsPage.tsx, /src/pages/OrdersPage.tsx, /src/components/Layout/AdaptiveLayout.tsx, /src/pages/mobile/WalletPage.mobile.tsx, /src/pages/mobile/TradePage.mobile.tsx, /src/pages/mobile/MarketsPage.mobile.tsx, /src/pages/mobile/OrdersPage.mobile.tsx, /src/components/BottomTabs/BottomTabs.tsx, /src/components/Chart/PriceChart.tsx, /src/components/Watchlist/Watchlist.tsx, /src/components/RiskRibbon/RiskRibbon.tsx, /src/components/Wallet/AccountOverviewCard.tsx, /src/components/AutomationPanel/AutomationPanel.tsx, /src/components/AutomationPanel/TriggerForm.tsx, /src/components/Positions/Positions.tsx, /src/components/mobile/TradeOverview/TradeOverview.tsx[22m
+[ui] [2m4:30:01 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TradePage.tsx[22m
+[ui] [2m4:30:55 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Watchlist/Watchlist.tsx[22m
+[ui] [2m4:31:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Watchlist/Watchlist.tsx[22m
+[ui] [2m4:31:05 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Watchlist/Watchlist.tsx[22m
+[ui] [2m4:31:17 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/global.css[22m
+[ui] [2m4:31:28 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/global.css[22m
+[ui] [2m4:31:44 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Layout/DesktopLayout.tsx[22m
+[ui] [2m4:31:56 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Layout/TopNav.tsx[22m
+[ui] [2m4:32:24 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TradePage.tsx[22m
+[ui] [2m4:32:40 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Watchlist/Watchlist.tsx[22m
+[ui] [2m4:33:52 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/OrderEntry/OrderEntry.tsx[22m
+[ui] [2m4:34:18 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/styles/global.css[22m
+[ui] [2m4:34:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MarketsPage.tsx[22m
+[ui] [2m4:37:05 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AuthPage.tsx[22m
+[ui] [2m4:37:11 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/PasswordField/PasswordField.tsx[22m
+[ui] [2m4:37:11 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/components/PasswordField/PasswordField.module.css (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/components/PasswordField/PasswordField.module.css) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/components/PasswordField/PasswordField.tsx. Does the file exist?
+[ui] [2m4:37:32 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/PasswordField/PasswordField.tsx[22m
+[ui] [2m4:50:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AssetDetailPage.tsx, /src/pages/WalletPage.tsx, /src/pages/AuthPage.tsx, /src/App.tsx, /src/pages/SettingsPage.tsx, /src/components/Layout/TopNav.tsx, /src/components/Layout/DesktopLayout.tsx, /src/components/Layout/AccountMenu.tsx, /src/pages/ManagementPage.tsx, /src/pages/mobile/AccountPage.mobile.tsx, /src/components/Wallet/OnboardingGuide.tsx, /src/pages/OrdersPage.tsx, /src/components/BottomTabs/BottomTabs.tsx, /src/components/Chart/PriceChart.tsx, /src/components/AutomationPanel/ExecutionLogList.tsx, /src/components/AutomationPanel/TriggerList.tsx, /src/components/AutomationPanel/TriggerForm.tsx, /src/components/Positions/TPSLForm.tsx, /src/components/Layout/AssetSnapshot.tsx, /src/pages/TradePage.tsx, /src/pages/mobile/OrdersPage.mobile.tsx, /src/components/Layout/AdaptiveLayout.tsx, /src/pages/mobile/MobileOrderEntry.tsx, /src/pages/mobile/TradePage.mobile.tsx, /src/components/OrderEntry/OrderEntry.tsx, /src/components/Watchlist/Watchlist.tsx, /src/components/RiskRibbon/RiskRibbon.tsx, /src/components/OpenOrders/OpenOrders.tsx, /src/components/Positions/Positions.tsx, /src/components/mobile/TradeOverview/TradeOverview.tsx, /src/pages/mobile/WalletPage.mobile.tsx, /src/components/Wallet/WithdrawDrawer.tsx, /src/components/Wallet/DepositDrawer.tsx, /src/components/Wallet/LedgerTable.tsx, /src/components/Wallet/AccountOverviewCard.tsx, /src/components/Wallet/AssetBalancesPanel.tsx, /src/components/Wallet/LinkedMethodsPanel.tsx[22m
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:50:47 AM[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/store/walletStore.ts (resolved id: C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/store/walletStore.ts) in C:/Users/FAMILY COMPUTER/Documents/tbt-paper-terminal-main/tbt-paper-terminal-main/src/pages/AssetDetailPage.tsx. Does the file exist?
+[ui] [2m4:53:10 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AssetDetailPage.tsx, /src/pages/WalletPage.tsx, /src/pages/AuthPage.tsx, /src/App.tsx, /src/pages/SettingsPage.tsx, /src/components/Layout/TopNav.tsx, /src/components/Layout/DesktopLayout.tsx, /src/components/Layout/AccountMenu.tsx, /src/pages/ManagementPage.tsx, /src/pages/mobile/AccountPage.mobile.tsx, /src/components/Wallet/OnboardingGuide.tsx, /src/pages/OrdersPage.tsx, /src/components/BottomTabs/BottomTabs.tsx, /src/components/Chart/PriceChart.tsx, /src/components/AutomationPanel/ExecutionLogList.tsx, /src/components/AutomationPanel/TriggerList.tsx, /src/components/AutomationPanel/TriggerForm.tsx, /src/components/Positions/TPSLForm.tsx, /src/components/Layout/AssetSnapshot.tsx, /src/pages/TradePage.tsx, /src/pages/mobile/OrdersPage.mobile.tsx, /src/components/Layout/AdaptiveLayout.tsx, /src/pages/mobile/MobileOrderEntry.tsx, /src/pages/mobile/TradePage.mobile.tsx, /src/components/OrderEntry/OrderEntry.tsx, /src/components/Watchlist/Watchlist.tsx, /src/components/RiskRibbon/RiskRibbon.tsx, /src/components/OpenOrders/OpenOrders.tsx, /src/components/Positions/Positions.tsx, /src/components/mobile/TradeOverview/TradeOverview.tsx, /src/pages/mobile/WalletPage.mobile.tsx, /src/components/Wallet/WithdrawDrawer.tsx, /src/components/Wallet/DepositDrawer.tsx, /src/components/Wallet/LedgerTable.tsx, /src/components/Wallet/AccountOverviewCard.tsx, /src/components/Wallet/AssetBalancesPanel.tsx, /src/components/Wallet/LinkedMethodsPanel.tsx[22m
+[ui] [2m6:17:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v3/depth?symbol=BTCUSDT&limit=1000[39m
+[ui] Error: getaddrinfo ENOTFOUND testnet.binance.vision
+[ui]     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+[ui] [2m6:17:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v3/depth?symbol=BTCUSDT&limit=1000[39m
+[ui] Error: getaddrinfo ENOTFOUND testnet.binance.vision
+[ui]     at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+[ui] [2m6:18:01 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v3/depth?symbol=BTCUSDT&limit=1000[39m
+[ui] AggregateError [ETIMEDOUT]: 
+[ui]     at internalConnectMultiple (node:net:1118:18)
+[ui]     at afterConnectMultiple (node:net:1685:7)
+[ui] [2m6:18:02 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v3/trades?symbol=BTCUSDT&limit=50[39m
+[ui] AggregateError [ETIMEDOUT]: 
+[ui]     at internalConnectMultiple (node:net:1118:18)
+[ui]     at afterConnectMultiple (node:net:1685:7)
+[api] ^C^CTerminate batch job (Y/N)? 
+[ui] ^C^CTerminate batch job (Y/N)? ^CTerminate batch job (Y/N)? 
+[api] ^C
+[api] npm run dev:api exited with code 3221225786
+[ui] npm run dev:ui exited with code 3221225786

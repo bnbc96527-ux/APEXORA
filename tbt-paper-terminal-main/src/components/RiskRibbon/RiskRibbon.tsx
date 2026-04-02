@@ -24,6 +24,7 @@ export function RiskRibbon({ compact = false, full = false }: RiskRibbonProps) {
   const balances = useWalletStore(selectBalances);
   const performanceMetrics = useWalletStore((state) => state.performanceMetrics);
   const updatePerformanceMetrics = useWalletStore((state) => state.updatePerformanceMetrics);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const positions = useTradingStore((state) => state.positions);
   const metrics = useMarketStore(selectMetrics);
   const orderBook = useMarketStore(selectOrderBook);
@@ -34,6 +35,10 @@ export function RiskRibbon({ compact = false, full = false }: RiskRibbonProps) {
     if (!metrics) return;
     
     const prices: Record<string, string> = {};
+    const watchlist = useWatchlistStore.getState().symbols;
+    watchlist.forEach((s) => {
+      if (s.price) prices[s.symbol] = s.price;
+    });
     if (metrics.mid && orderBook?.symbol) {
       prices[orderBook.symbol] = metrics.mid;
     }
@@ -57,12 +62,12 @@ export function RiskRibbon({ compact = false, full = false }: RiskRibbonProps) {
     }
 
     const activePosition = positionEntries.find(([symbol, pos]) => 
-      symbol === currentSymbol && pos.side === 'long' && parseFloat(pos.quantity) > 0
+      (pos.accountType ?? activeAccountType) === activeAccountType && symbol === currentSymbol && pos.side === 'long' && parseFloat(pos.quantity) > 0
     );
 
     if (!activePosition) {
       const hasOtherPositions = positionEntries.some(([_, pos]) =>
-        pos.side === 'long' && parseFloat(pos.quantity) > 0
+        (pos.accountType ?? activeAccountType) === activeAccountType && pos.side === 'long' && parseFloat(pos.quantity) > 0
       );
       
       return {

@@ -3,6 +3,7 @@ import { useMarketStore, selectOrderBook, selectMetrics, selectBestBid, selectBe
 import { useTradingStore } from '../../store/tradingStore';
 import { useWalletStore, selectBalances } from '../../store/walletStore';
 import { useI18n, formatMessage } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { toast } from '../../components/Toast';
 import { Icon } from '../../components/Icon';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
@@ -68,16 +69,31 @@ export function MobileOrderEntry({
     return '0';
   }, [price, quantity, type, metrics]);
 
+  const parsedQty = quantity ? parseFloat(quantity) : NaN;
+  const parsedPrice = price ? parseFloat(price) : NaN;
+  const isDataBlocked = dataConfidence.level === 'stale' || dataConfidence.level === 'resyncing';
+  const needsMarketPrice = type === 'market' && side === 'buy';
+  const hasMarketPrice = !!metrics?.mid && parseFloat(metrics.mid) > 0;
+
   const getMaxQuantity = useCallback(() => {
     if (side === 'buy' && quoteBalance && metrics) {
       const av = parseFloat(quoteBalance.available);
       const p = type === 'limit' && price ? parseFloat(price) : parseFloat(metrics.mid);
-      return p > 0 ? av / p : 0;
+      // Add 5% buffer for market buys to match engine requirements.
+      const buffer = type === 'market' ? 1.05 : 1;
+      return p > 0 ? av / (p * buffer) : 0;
     } else if (side === 'sell' && baseBalance) {
       return parseFloat(baseBalance.available);
     }
     return 0;
   }, [side, type, price, quoteBalance, baseBalance, metrics]);
+
+  const maxQty = getMaxQuantity();
+  const hasInsufficientBalance =
+    quantity !== '' &&
+    !isNaN(parsedQty) &&
+    parsedQty > 0 &&
+    (maxQty <= 0 || parsedQty > maxQty + 1e-12);
 
   const updateQuantityFromPercent = useCallback((pct: number) => {
     const max = getMaxQuantity();
@@ -89,8 +105,12 @@ export function MobileOrderEntry({
   }, [getMaxQuantity, trigger]);
 
   const handleSubmit = () => {
-    if (dataConfidence.level === 'stale') {
-      toast.warning(t.dataConfidence?.staleDesc || 'Data is stale');
+    if (isDataBlocked) {
+      toast.warning(dataConfidence.reason || 'Waiting for data');
+      return;
+    }
+    if (needsMarketPrice && !hasMarketPrice) {
+      toast.warning(t.dataConfidence?.waitingData || 'Waiting for data');
       return;
     }
     if (!quantity || parseFloat(quantity) <= 0) {
@@ -99,6 +119,11 @@ export function MobileOrderEntry({
     }
     if (type === 'limit' && (!price || parseFloat(price) <= 0)) {
       toast.warning(t.orderEntry?.invalidPrice || 'Invalid price');
+      return;
+    }
+    if (hasInsufficientBalance) {
+      toast.error(t.orderEntry?.insufficientBalance || 'Insufficient balance');
+      trigger('error');
       return;
     }
 
@@ -123,7 +148,7 @@ export function MobileOrderEntry({
   };
 
   const availableBalance = side === 'buy'
-    ? `${parseFloat(quoteBalance?.available ?? '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${quoteAsset}`
+    ? `${parseFloat(quoteBalance?.available ?? '0').toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${quoteAsset}`
     : `${parseFloat(baseBalance?.available ?? '0').toFixed(4)} ${baseAsset}`;
 
   return (
@@ -287,7 +312,15 @@ export function MobileOrderEntry({
       <button
         className={`${styles.submitBtn} ${side === 'buy' ? styles.buySubmit : styles.sellSubmit}`}
         onClick={handleSubmit}
-        disabled={dataConfidence.level === 'stale' || !quantity}
+        disabled={
+          isDataBlocked ||
+          !quantity ||
+          isNaN(parsedQty) ||
+          parsedQty <= 0 ||
+          (type === 'limit' && (!price || isNaN(parsedPrice) || parsedPrice <= 0)) ||
+          (needsMarketPrice && !hasMarketPrice) ||
+          hasInsufficientBalance
+        }
       >
         {side === 'buy'
           ? formatMessage(t.orderEntry?.placeBuyOrder || 'Buy {symbol}', { symbol: baseAsset })
@@ -297,4 +330,3 @@ export function MobileOrderEntry({
     </div>
   );
 }
-

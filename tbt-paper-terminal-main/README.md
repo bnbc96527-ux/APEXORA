@@ -120,6 +120,15 @@ graph LR
     # -> http://localhost:5173
     ```
 
+4. **Start the local API server** (used by the UI proxy at `/live-api`)
+
+    ```bash
+    npm run server
+    # -> http://localhost:4010
+    ```
+
+Tip: from the repo root, you can run `npm run dev` to start both the UI and API together.
+
 ---
 
 <p align="center">

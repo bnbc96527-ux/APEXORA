@@ -24,6 +24,7 @@ export function AccountOverviewCard() {
   const account = useWalletStore(selectAccount);
   const balances = useWalletStore(selectBalances);
   const getTotalEquity = useWalletStore((state) => state.getTotalEquity);
+  const pendingRealDepositBalance = useWalletStore((state) => state.getPendingRealDepositBalance());
   const symbols = useWatchlistStore(selectSymbols);
   
   // Build prices map from watchlist symbols
@@ -101,6 +102,8 @@ export function AccountOverviewCard() {
     // Sort by value descending and take top 5
     return items.sort((a, b) => b.usdValue - a.usdValue).slice(0, 5);
   }, [balances, prices, totalEquity]);
+
+  const hasPendingRealDeposits = new Decimal(pendingRealDepositBalance || '0').gt(0);
 
   if (!account) {
     return null;
@@ -181,6 +184,20 @@ export function AccountOverviewCard() {
           </div>
         </div>
 
+        {account.type === 'real' && (
+          <div className={styles.approvalNotice}>
+            <div className={styles.approvalNoticeHeader}>
+              <Icon name="shield-alert" size="sm" />
+              <span>{t.wallet?.depositPending || 'Pending approval'}</span>
+            </div>
+            <div className={styles.approvalNoticeBody}>
+              {hasPendingRealDeposits
+                ? `${pendingRealDepositBalance} USDT waiting for admin or boss approval.`
+                : 'Real account balance stays at 0 until a deposit is approved by admin or boss.'}
+            </div>
+          </div>
+        )}
+
         <div className={styles.allocationList}>
           {allocation.length > 0 ? (
             allocation.map(item => (
@@ -202,4 +219,3 @@ export function AccountOverviewCard() {
     </div>
   );
 }
-

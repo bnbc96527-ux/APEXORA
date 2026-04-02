@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useI18n } from '../../i18n';
 import { Icon } from '../Icon';
+import { getUiLocale } from '../../utils/locale';
+import { AccountModeSwitcher } from './AccountModeSwitcher';
 import styles from './AccountMenu.module.css';
 
 export const AccountMenu: React.FC = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -79,26 +81,43 @@ export const AccountMenu: React.FC = () => {
           <div className={styles.menuItems}>
             <div className={styles.menuSection}>
               <span className={styles.sectionLabel}>
-                {t.common?.login === '登录' ? '会话信息' : 'SESSION'}
+                {locale === 'zh-CN' ? '会话信息' : 'SESSION'}
               </span>
               <div className={styles.menuItem}>
                 <Icon name="clock" size="xs" />
                 <span>
-                  {t.common?.login === '登录' ? '上次登录: ' : 'Last login: '}
-                  {new Date(user.lastLogin).toLocaleTimeString()}
+                  {locale === 'zh-CN' ? '上次登录: ' : 'Last login: '}
+                  {new Date(user.lastLogin).toLocaleTimeString(getUiLocale())}
                 </span>
               </div>
             </div>
             
             <div className={styles.divider} />
-            
+
+            <div className={styles.menuSection}>
+              <AccountModeSwitcher compact />
+            </div>
+
+            <div className={styles.divider} />
+
+            {(user.role === 'boss' || user.role === 'admin') && (
+              <Link
+                to="/manage"
+                className={styles.menuItem}
+                onClick={() => setIsOpen(false)}
+              >
+                <Icon name="user-cog" size="xs" />
+                <span>Management</span>
+              </Link>
+            )}
+
             <Link 
               to="/settings" 
               className={styles.menuItem}
               onClick={() => setIsOpen(false)}
             >
               <Icon name="settings" size="xs" />
-              <span>{t.accountOverview?.accountSettings || (t.common?.login === '登录' ? '账户设置' : 'Account Settings')}</span>
+              <span>{t.accountOverview?.accountSettings || (locale === 'zh-CN' ? '账户设置' : 'Account Settings')}</span>
             </Link>
             
             <Link 
@@ -107,7 +126,7 @@ export const AccountMenu: React.FC = () => {
               onClick={() => setIsOpen(false)}
             >
               <Icon name="wallet" size="xs" />
-              <span>{t.accountOverview?.viewWallet || (t.common?.login === '登录' ? '钱包' : 'Wallet')}</span>
+              <span>{t.accountOverview?.viewWallet || (locale === 'zh-CN' ? '钱包' : 'Wallet')}</span>
             </Link>
 
             <button 
@@ -120,8 +139,8 @@ export const AccountMenu: React.FC = () => {
               <Icon name={theme === 'light' ? 'moon' : 'sun'} size="xs" />
               <span>
                 {theme === 'light' 
-                  ? (t.common?.login === '登录' ? '深色模式' : 'Dark Mode') 
-                  : (t.common?.login === '登录' ? '日间模式' : 'Light Mode')}
+                  ? (locale === 'zh-CN' ? '深色模式' : 'Dark Mode') 
+                  : (locale === 'zh-CN' ? '日间模式' : 'Light Mode')}
               </span>
             </button>
             
@@ -129,7 +148,7 @@ export const AccountMenu: React.FC = () => {
             
             <button className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
               <Icon name="log-out" size="xs" />
-              <span>{t.common?.login === '登录' ? '退出登录' : 'Sign Out'}</span>
+              <span>{locale === 'zh-CN' ? '退出登录' : 'Sign Out'}</span>
             </button>
           </div>
         </div>

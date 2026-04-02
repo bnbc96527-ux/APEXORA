@@ -1,77 +1,126 @@
-// ===== 仿真交易类型 =====
+import type { AccountType } from './wallet';
 
 export type OrderStatus =
-  | 'pending'      // 本地创建，未提交
-  | 'submitted'    // 已提交到仿真引擎
-  | 'open'         // 挂单中
-  | 'partial'      // 部分成交
-  | 'filled'       // 完全成交
-  | 'cancelled'    // 已撤销
-  | 'rejected';    // 被拒绝（余额不足等）
+  | 'pending'
+  | 'submitted'
+  | 'open'
+  | 'partial'
+  | 'filled'
+  | 'cancelled'
+  | 'rejected'
+  | 'expired'
+  | 'triggered';
 
 export type OrderSide = 'buy' | 'sell';
-export type OrderType = 'limit' | 'market';
+export type OrderType =
+  | 'limit'
+  | 'market'
+  | 'stop_limit'
+  | 'stop_market'
+  | 'take_profit_limit'
+  | 'take_profit_market'
+  | 'trailing_stop';
+
+export type TriggerDirection = 'up' | 'down';
+export type TrailingType = 'percent' | 'absolute';
 
 export interface PaperOrder {
-  clientOrderId: string;   // 客户端生成的UUID
+  clientOrderId: string;
+  accountType: AccountType;
+  exchangeOrderId?: string;
+  source?: 'paper' | 'live';
   symbol: string;
   side: OrderSide;
   type: OrderType;
-  price: string | null;    // 限价单必填，市价单为null
-  quantity: string;        // 下单数量
-  filledQty: string;       // 已成交数量
-  avgPrice: string;        // 平均成交价格
+  price: string | null;
+  quantity: string;
+  filledQty: string;
+  avgPrice: string;
   status: OrderStatus;
   createdAt: number;
   updatedAt: number;
-  fills: Fill[];           // 成交明细
-  rejectReason?: string;   // 拒绝原因
-  takeProfitPrice?: string; // 止盈触发价
-  stopLossPrice?: string;   // 止损触发价
+  fills: Fill[];
+  rejectReason?: string;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  triggerPrice?: string;
+  triggerDirection?: TriggerDirection;
+  isTriggered?: boolean;
+  triggeredAt?: number;
+  ocoGroupId?: string;
+  ocoLinkedOrderId?: string;
+  isOcoOrder?: boolean;
+  trailingType?: TrailingType;
+  trailingValue?: string;
+  trailingActivationPrice?: string;
+  trailingHighestPrice?: string;
+  trailingLowestPrice?: string;
+  trailingStopPrice?: string;
 }
 
 export interface Fill {
   fillId: string;
   price: string;
   quantity: string;
-  fee: string;             // 手续费（模拟 0.1%）
-  feeAsset: string;        // 手续费币种
+  fee: string;
+  feeAsset: string;
   time: number;
-  triggerTradeId?: string; // 触发成交的市场 Trade ID
+  triggerTradeId?: string;
 }
 
 export interface Position {
+  accountType: AccountType;
   symbol: string;
-  side: 'long' | 'flat';   // 仅支持现货多头，不支持做空（无借币机制）
-  quantity: string;        // 持仓数量（base asset）
-  avgEntryPrice: string;   // 平均开仓价格
-  unrealizedPnl: string;   // 未实现盈亏（基于 mid 价格）
-  realizedPnl: string;     // 已实现盈亏（卖出时结算）
+  side: 'long' | 'flat';
+  quantity: string;
+  avgEntryPrice: string;
+  unrealizedPnl: string;
+  realizedPnl: string;
   updatedAt: number;
-  takeProfitPrice?: string; // 止盈价
-  stopLossPrice?: string;   // 止损价
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
 }
 
 export interface AccountBalance {
-  asset: string;           // 币种，如 "USDT", "BTC"
-  free: string;            // 可用余额
-  locked: string;          // 冻结余额（挂单占用）
-  total: string;           // 总余额 = free + locked
+  asset: string;
+  free: string;
+  locked: string;
+  total: string;
 }
 
-// ===== 订单状态机有效转换 =====
+export interface OCOOrder {
+  ocoGroupId: string;
+  accountType: AccountType;
+  symbol: string;
+  side: OrderSide;
+  quantity: string;
+  limitPrice: string;
+  stopPrice: string;
+  stopLimitPrice: string;
+  status: 'active' | 'cancelled' | 'filled' | 'partially_filled';
+  limitOrderId: string;
+  stopOrderId: string;
+  createdAt: number;
+  updatedAt: number;
+}
 
-export const VALID_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['submitted', 'cancelled'],
-  submitted: ['open', 'rejected'],
-  open: ['partial', 'filled', 'cancelled'],
-  partial: ['filled', 'cancelled'],
-  filled: [],
-  cancelled: [],
-  rejected: [],
-};
+export interface CreateOCOParams {
+  symbol: string;
+  side: OrderSide;
+  quantity: string;
+  limitPrice: string;
+  stopPrice: string;
+  stopLimitPrice: string;
+}
 
-// ===== 订单 UI 约束 =====
+export interface CreateTrailingStopParams {
+  symbol: string;
+  side: OrderSide;
+  quantity: string;
+  trailingType: TrailingType;
+  trailingValue: string;
+  activationPrice?: string;
+}
 
 export interface OrderUIConstraints {
   canCancel: boolean;
@@ -79,17 +128,26 @@ export interface OrderUIConstraints {
   displayStyle: 'pending' | 'processing' | 'active' | 'success' | 'cancelled' | 'error';
 }
 
+export const VALID_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['submitted', 'cancelled'],
+  submitted: ['open', 'rejected'],
+  open: ['partial', 'filled', 'cancelled', 'triggered'],
+  triggered: ['open', 'cancelled'],
+  partial: ['filled', 'cancelled'],
+  filled: [],
+  cancelled: [],
+  rejected: [],
+  expired: [],
+};
+
 export const ORDER_UI_CONSTRAINTS: Record<OrderStatus, OrderUIConstraints> = {
   pending: { canCancel: true, canModify: true, displayStyle: 'pending' },
   submitted: { canCancel: false, canModify: false, displayStyle: 'processing' },
   open: { canCancel: true, canModify: false, displayStyle: 'active' },
   partial: { canCancel: true, canModify: false, displayStyle: 'active' },
+  triggered: { canCancel: false, canModify: false, displayStyle: 'processing' },
   filled: { canCancel: false, canModify: false, displayStyle: 'success' },
   cancelled: { canCancel: false, canModify: false, displayStyle: 'cancelled' },
   rejected: { canCancel: false, canModify: false, displayStyle: 'error' },
+  expired: { canCancel: false, canModify: false, displayStyle: 'cancelled' },
 };
-
-
-
-
-

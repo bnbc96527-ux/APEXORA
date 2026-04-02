@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMarketStore, selectMetrics, selectOrderBook, selectDataConfidence, selectCanTrustMetrics } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import type { DataConfidenceLevel } from '../../types/market';
 import styles from './MetricsPanel.module.css';
@@ -207,7 +208,12 @@ export function MetricsPanel({ compact = false }: MetricsPanelProps) {
         </span>
         <span className={styles.depthLabel}>{t.dataConfidence?.lastUpdate || 'Update'}:</span>
         <span className={`${styles.depthValue} tabular-nums`}>
-          {new Date(orderBook.localUpdateTime || Date.now()).toLocaleTimeString()}
+          {new Date(orderBook.localUpdateTime || Date.now()).toLocaleTimeString(getUiLocale(), {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })}
         </span>
       </div>
     </div>
@@ -217,7 +223,7 @@ export function MetricsPanel({ compact = false }: MetricsPanelProps) {
 function formatPrice(price: string): string {
   const num = parseFloat(price);
   if (num === 0) return '—';
-  if (num >= 1000) return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (num >= 1000) return num.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (num >= 1) return num.toFixed(4);
   return num.toFixed(8);
 }

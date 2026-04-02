@@ -1,12 +1,23 @@
 import { NavLink } from 'react-router-dom';
 import { useI18n } from '../../i18n';
+import { useAuthStore } from '../../store/authStore';
 import styles from './TopNav.module.css';
 
 export function TopNav() {
   const { t } = useI18n();
+  const user = useAuthStore((s) => s.user);
+  const canManage = user?.role === 'boss' || user?.role === 'admin';
 
   return (
     <nav className={styles.nav}>
+      {canManage && (
+        <NavLink
+          to="/manage"
+          className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+        >
+          Management
+        </NavLink>
+      )}
       <NavLink 
         to="/assets" 
         className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
@@ -40,7 +51,6 @@ export function TopNav() {
     </nav>
   );
 }
-
 
 
 

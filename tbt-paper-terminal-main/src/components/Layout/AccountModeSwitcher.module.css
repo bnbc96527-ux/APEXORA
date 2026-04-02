@@ -1,0 +1,86 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.45rem 0.65rem;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border-strong);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.compact {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.compact .copy {
+  align-items: flex-start;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.hint {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 1.8rem;
+  padding: 0 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-fast);
+}
+
+.option:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.option.active {
+  background: linear-gradient(135deg, var(--electric-blue), var(--neon-accent));
+  color: white;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+}
+
+.option.active:hover {
+  background: linear-gradient(135deg, var(--electric-blue), var(--neon-accent));
+  color: white;
+}

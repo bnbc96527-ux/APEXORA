@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  background: var(--bg-primary);
+  background: transparent;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -30,9 +30,9 @@
 }
 
 .statCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--panel-glass) 92%, transparent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 20px;
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
@@ -242,10 +242,10 @@
   flex-direction: column;
   min-height: 600px;
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  background: color-mix(in srgb, var(--panel-glass) 92%, transparent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 22px;
+  box-shadow: var(--ring-glow);
 }
 
 .toolbar {
@@ -253,14 +253,16 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--surface), rgba(0, 212, 255, 0.02));
+  border-bottom: 1px solid var(--panel-border-strong);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-secondary) 86%, transparent), rgba(14, 165, 233, 0.05));
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .tabs {
   display: flex;
   gap: var(--space-1);
+  flex-wrap: wrap;
 }
 
 .tab {
@@ -353,9 +355,9 @@
   width: 100%;
   height: 36px;
   padding: 0 16px 0 40px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-secondary) 84%, transparent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 14px;
   color: var(--text-primary);
   font-size: 13px;
   transition: all var(--transition-normal);
@@ -371,10 +373,10 @@
 .viewToggle {
   display: flex;
   gap: 2px;
-  background: var(--bg-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 84%, transparent);
   padding: 2px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  border-radius: 14px;
+  border: 1px solid var(--panel-border-strong);
 }
 
 .toggleBtn {

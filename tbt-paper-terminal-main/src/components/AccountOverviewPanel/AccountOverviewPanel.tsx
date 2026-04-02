@@ -6,6 +6,7 @@ import { useMarketStore, selectMetrics } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
 import { Icon } from '../Icon';
 import Decimal from 'decimal.js';
+import { getUiLocale } from '../../utils/locale';
 import styles from './AccountOverviewPanel.module.css';
 
 export const AccountOverviewPanel: React.FC = () => {
@@ -156,9 +157,8 @@ export const AccountOverviewPanel: React.FC = () => {
 function formatNumber(value: string): string {
   const num = parseFloat(value);
   if (isNaN(num)) return '0.00';
-  return num.toLocaleString('en-US', {
+  return num.toLocaleString(getUiLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 }
-

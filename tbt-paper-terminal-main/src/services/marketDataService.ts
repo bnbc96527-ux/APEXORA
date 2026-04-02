@@ -4,6 +4,7 @@
  */
 
 import { handleApiError, logError } from '../utils/errorHandler';
+import { getUiLocale } from '../utils/locale';
 
 export interface MarketTicker {
   symbol: string;
@@ -174,7 +175,7 @@ export function formatVolume(v: number): string {
 }
 
 export function formatPrice(p: number): string {
-  if (p >= 1000) return p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 1000) return p.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(6);
 }

@@ -4,8 +4,12 @@ import { useAutomationStore } from '../store/automationStore';
 import { useI18n } from '../i18n';
 import { Icon, IconName } from '../components/Icon';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { getUiLocale } from '../utils/locale';
 import { MobileOrdersPage } from './mobile';
+import { useWatchlistStore, selectSelectedSymbol } from '../store/watchlistStore';
+import { useLiveHistorySync } from '../hooks/useLiveHistorySync';
 import { TriggerList, ExecutionLogList } from '../components/AutomationPanel';
+import { useWalletStore } from '../store/walletStore';
 import type { PaperOrder, OrderStatus } from '../types/trading';
 import styles from './OrdersPage.module.css';
 
@@ -13,7 +17,7 @@ type TabType = 'open' | 'history' | 'trades' | 'automation' | 'analytics';
 type TimeFilter = 'all' | '1d' | '7d' | '30d';
 
 // 格式化时间 - 使用传入的 locale 进行国际化
-function formatTime(timestamp: number, compact = false, locale = 'zh-CN'): string {
+function formatTime(timestamp: number, compact = false, locale = getUiLocale()): string {
   if (compact) {
     return new Date(timestamp).toLocaleString(locale, {
       month: '2-digit',
@@ -550,7 +554,7 @@ function AnalyticsPanel({ orders, trades }: { orders: PaperOrder[]; trades: { fi
                     title={`${date}: ${formatUSD(data.volume)}`}
                   />
                   <span className={styles.barLabel}>
-                    {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
+                    {new Date(date).toLocaleDateString(getUiLocale(), { weekday: 'short' })}
                   </span>
                 </div>
               );
@@ -599,6 +603,8 @@ function AnalyticsPanel({ orders, trades }: { orders: PaperOrder[]; trades: { fi
 export function OrdersPage() {
   const isMobile = useIsMobile();
   const { t: _t, locale } = useI18n();
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
+  const liveTradingEnabled = activeAccountType === 'real' && import.meta.env.VITE_LIVE_TRADING === 'true';
   const [activeTab, setActiveTab] = useState<TabType>('open');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [symbolFilter, setSymbolFilter] = useState<string>('all');
@@ -611,9 +617,22 @@ export function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<PaperOrder | null>(null);
   
-  const orders = useTradingStore((state) => state.orders);
+  const orders = useTradingStore((state) => state.orders.filter((o) => (o.accountType ?? activeAccountType) === activeAccountType));
   const cancelOrder = useTradingStore((state) => state.cancelOrder);
   const triggers = useAutomationStore((state) => state.triggers);
+  const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
+  const watchlistSymbols = useWatchlistStore((state) => state.symbols.map((s) => s.symbol));
+
+  const symbolsToSync = useMemo(() => {
+    const set = new Set<string>();
+    if (symbolFilter !== 'all') set.add(symbolFilter);
+    if (selectedSymbol) set.add(selectedSymbol);
+    orders.forEach((o) => set.add(o.symbol));
+    watchlistSymbols.slice(0, 5).forEach((s) => set.add(s));
+    return Array.from(set).slice(0, 10);
+  }, [symbolFilter, selectedSymbol, orders, watchlistSymbols]);
+
+  useLiveHistorySync(liveTradingEnabled ? symbolsToSync : []);
 
   // 时间过滤
   const filterByTime = useCallback((timestamp: number) => {
@@ -721,7 +740,11 @@ export function OrdersPage() {
               <Icon name="layers" size="lg" />
               Order Management
             </h1>
-            <span className={styles.simulatedBadge}>Paper Trading</span>
+            <span className={styles.simulatedBadge}>
+              {activeAccountType === 'real'
+                ? (liveTradingEnabled ? 'Real Trading' : 'Real Account')
+                : 'Paper Trading'}
+            </span>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.exportBtn}>

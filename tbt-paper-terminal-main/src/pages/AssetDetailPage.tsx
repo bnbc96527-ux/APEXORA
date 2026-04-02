@@ -7,6 +7,7 @@ import { useAutomationStore } from '../store/automationStore';
 import { useI18n } from '../i18n';
 import { Icon, IconName } from '../components/Icon';
 import { Sparkline } from '../components/Chart/Sparkline';
+import { getUiLocale } from '../utils/locale';
 import styles from './AssetDetailPage.module.css';
 import Decimal from 'decimal.js';
 
@@ -75,12 +76,12 @@ function PortfolioChart({
       case '7D':
         return Array.from({ length: 5 }, (_, i) => {
           const d = new Date(now.getTime() - (4 - i) * 24 * 60 * 60 * 1000 * 1.75);
-          return d.toLocaleDateString('en-US', { weekday: 'short' });
+          return d.toLocaleDateString(getUiLocale(), { weekday: 'short' });
         });
       case '30D':
         return Array.from({ length: 5 }, (_, i) => {
           const d = new Date(now.getTime() - (4 - i) * 24 * 60 * 60 * 1000 * 7.5);
-          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return d.toLocaleDateString(getUiLocale(), { month: 'short', day: 'numeric' });
         });
       case 'ALL':
         return ['Start', '', '', '', 'Now'];
@@ -454,10 +455,11 @@ export function AssetDetailPage() {
   // Store data
   const balances = useWalletStore(selectBalances);
   const account = useWalletStore(selectAccount);
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
   const performanceMetrics = useWalletStore((state) => state.performanceMetrics);
   const ledger = useWalletStore((state) => state.ledger);
   const positions = useTradingStore((state) => state.positions);
-  const orders = useTradingStore((state) => state.orders);
+  const orders = useTradingStore((state) => state.orders.filter((order) => (order.accountType ?? activeAccountType) === activeAccountType));
   const triggers = useAutomationStore((state) => state.triggers);
   const executionLogs = useAutomationStore((state) => state.executionLogs);
   const symbols = useWatchlistStore((state) => state.symbols);
@@ -466,10 +468,11 @@ export function AssetDetailPage() {
   // Helper to get position
   const getPosition = useCallback((symbol: string) => {
     if (!positions) return undefined;
-    if (positions instanceof Map) return positions.get(symbol);
-    if (typeof positions === 'object') return (positions as any)[symbol];
+    const key = `${activeAccountType}:${symbol}`;
+    if (positions instanceof Map) return positions.get(key) || positions.get(symbol);
+    if (typeof positions === 'object') return (positions as any)[key] || (positions as any)[symbol];
     return undefined;
-  }, [positions]);
+  }, [positions, activeAccountType]);
 
   // Processed asset list
   const assetList = useMemo(() => {
@@ -544,13 +547,13 @@ export function AssetDetailPage() {
     if (positions instanceof Map) {
       positions.forEach((pos) => {
         if (pos && pos.realizedPnl) {
-          totalRealizedPnl += parseFloat(pos.realizedPnl);
+          if ((pos.accountType ?? activeAccountType) === activeAccountType) totalRealizedPnl += parseFloat(pos.realizedPnl);
         }
       });
     } else if (typeof positions === 'object' && positions !== null) {
       Object.values(positions).forEach((pos: any) => {
         if (pos && pos.realizedPnl) {
-          totalRealizedPnl += parseFloat(pos.realizedPnl);
+          if ((pos.accountType ?? activeAccountType) === activeAccountType) totalRealizedPnl += parseFloat(pos.realizedPnl);
         }
       });
     }
@@ -780,7 +783,7 @@ export function AssetDetailPage() {
           
           <div className={styles.portfolioValue}>
             <span className={styles.currency}>$</span>
-            <span className={styles.amount}>{totals.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className={styles.amount}>{totals.totalValue.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           
           <div className={styles.portfolioMeta}>
@@ -810,7 +813,7 @@ export function AssetDetailPage() {
                 <Icon name="wallet" size="xs" />
               </div>
               <div className={styles.metricContent}>
-                <span className={styles.metricValue}>${totals.availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.metricValue}>${totals.availableBalance.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className={styles.metricLabel}>Available Balance</span>
               </div>
             </div>
@@ -820,7 +823,7 @@ export function AssetDetailPage() {
                 <Icon name="layers" size="xs" />
               </div>
               <div className={styles.metricContent}>
-                <span className={styles.metricValue}>${totals.positionValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.metricValue}>${totals.positionValue.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className={styles.metricLabel}>Position Value</span>
               </div>
             </div>
@@ -831,7 +834,7 @@ export function AssetDetailPage() {
               </div>
               <div className={styles.metricContent}>
                 <span className={`${styles.metricValue} ${totals.totalRealizedPnl >= 0 ? styles.positive : styles.negative}`}>
-                  {totals.totalRealizedPnl >= 0 ? '+' : ''}${totals.totalRealizedPnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {totals.totalRealizedPnl >= 0 ? '+' : ''}${totals.totalRealizedPnl.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className={styles.metricLabel}>Realized P&L</span>
               </div>
@@ -843,7 +846,7 @@ export function AssetDetailPage() {
               </div>
               <div className={styles.metricContent}>
                 <span className={`${styles.metricValue} ${totals.totalUnrealizedPnl >= 0 ? styles.positive : styles.negative}`}>
-                  {totals.totalUnrealizedPnl >= 0 ? '+' : ''}${totals.totalUnrealizedPnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {totals.totalUnrealizedPnl >= 0 ? '+' : ''}${totals.totalUnrealizedPnl.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className={styles.metricLabel}>Unrealized P&L</span>
               </div>
@@ -947,7 +950,7 @@ export function AssetDetailPage() {
           <MarketCard
             symbol="BTC"
             name="Bitcoin"
-            price={parseFloat(marketData.btc.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            price={parseFloat(marketData.btc.price).toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             change={parseFloat(String(marketData.btc.change))}
             sparklineData={marketData.btc.sparkline}
             onClick={() => handleTrade('BTC')}
@@ -955,7 +958,7 @@ export function AssetDetailPage() {
           <MarketCard
             symbol="ETH"
             name="Ethereum"
-            price={parseFloat(marketData.eth.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            price={parseFloat(marketData.eth.price).toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             change={parseFloat(String(marketData.eth.change))}
             sparklineData={marketData.eth.sparkline}
             onClick={() => handleTrade('ETH')}

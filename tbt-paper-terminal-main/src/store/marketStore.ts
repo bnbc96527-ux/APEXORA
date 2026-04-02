@@ -346,7 +346,11 @@ export const useMarketStore = create<MarketState>()(
       // Send subscribe message
       worker.postMessage({
         type: 'SUBSCRIBE',
-        payload: { symbol, streams: ['depth', 'trade'] },
+        payload: {
+          symbol,
+          streams: ['depth', 'trade'],
+          wsBase: import.meta.env.VITE_BINANCE_WS_BASE || 'wss://testnet.binance.vision',
+        },
         timestamp: performance.now(),
       });
 
@@ -436,4 +440,3 @@ useI18n.subscribe(
     }
   }
 );
-

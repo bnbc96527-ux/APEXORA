@@ -1,0 +1,181 @@
+{
+  "users": [
+    {
+      "id": "boss-0001",
+      "username": "boss",
+      "email": "boss@apexora.local",
+      "country": "US",
+      "role": "boss",
+      "passwordHash": "$2a$12$kQhumWZ7N.FVzZBQeHvckedU8S640iLI9tZMtpsA/v2xSq6/IgQbS",
+      "status": "active",
+      "emailVerifiedAt": 1768918187084,
+      "emailVerificationCodeHash": null,
+      "emailVerificationExpiresAt": null,
+      "twoFactorEnabled": false,
+      "twoFactorSecret": null,
+      "twoFactorPendingSecret": null,
+      "twoFactorSetupExpiresAt": null,
+      "resetPasswordCodeHash": null,
+      "resetPasswordExpiresAt": null,
+      "createdAt": 1768918187084,
+      "loginActivity": [
+        {
+          "id": "6fc72532c4d0",
+          "success": true,
+          "at": 1774103901632,
+          "ip": "::1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0"
+        },
+        {
+          "id": "0c079715c501",
+          "success": true,
+          "at": 1774102239814,
+          "ip": "::1",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
+        },
+        {
+          "id": "c05faa34823f",
+          "success": true,
+          "at": 1774102188274,
+          "ip": "::1",
+          "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456"
+        }
+      ],
+      "lastLoginAt": 1774103901632,
+      "lastLoginIp": "::1",
+      "lastUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0",
+      "referralEarningsUSDT": "0"
+    },
+    {
+      "id": "admin-0001",
+      "username": "admin",
+      "email": "admin@goail.com",
+      "country": "US",
+      "role": "admin",
+      "passwordHash": "$2a$12$OvNAQJdJ1ir1l0kYN4IFt.HRVT0Y2T9bXfmFuHKaIGT8QEKHAu7x2",
+      "status": "active",
+      "emailVerifiedAt": 1770214187732,
+      "emailVerificationCodeHash": null,
+      "emailVerificationExpiresAt": null,
+      "twoFactorEnabled": false,
+      "twoFactorSecret": null,
+      "twoFactorPendingSecret": null,
+      "twoFactorSetupExpiresAt": null,
+      "resetPasswordCodeHash": null,
+      "resetPasswordExpiresAt": null,
+      "createdAt": 1770214187732,
+      "loginActivity": [
+        {
+          "id": "07a61073210a",
+          "success": true,
+          "at": 1774102475251,
+          "ip": "::1",
+          "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456"
+        }
+      ],
+      "lastLoginAt": 1774102475251,
+      "lastLoginIp": "::1",
+      "lastUserAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456",
+      "referralEarningsUSDT": "400.00000000"
+    },
+    {
+      "id": "83c3a70dd3ba1fba649c207a",
+      "username": "yincang121",
+      "email": "yincang@gmail.com",
+      "country": "GB",
+      "role": "user",
+      "passwordHash": "$2a$12$ywCzXiej7Ywx6U8A0XClRuw2GLT1Glzew5QMVlxA.rhapCSzbQwVi",
+      "status": "active",
+      "emailVerifiedAt": 1774141102003,
+      "emailVerificationCodeHash": null,
+      "emailVerificationExpiresAt": null,
+      "twoFactorEnabled": false,
+      "twoFactorSecret": null,
+      "twoFactorPendingSecret": null,
+      "twoFactorSetupExpiresAt": null,
+      "resetPasswordCodeHash": null,
+      "resetPasswordExpiresAt": null,
+      "createdAt": 1774141099171,
+      "loginActivity": [
+        {
+          "id": "67a60e5f7719",
+          "success": true,
+          "at": 1774141102026,
+          "ip": "::1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0"
+        }
+      ],
+      "lastLoginAt": 1774141102025,
+      "lastLoginIp": "::1",
+      "lastUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "e9568eda2920c1d6a73ea8474da28d163e5e19a0be4c8059",
+      "userId": "admin-0001",
+      "refreshTokenHash": "f14bc08dc2da95ab00e07a45ad36a08d6425a036ac6a995bf021602c4a1333a1",
+      "expiresAt": 1776694475251,
+      "createdAt": 1774102475251,
+      "csrfToken": "a1564968c63f7029c34a36317b0f3082b25e07097e0557af"
+    },
+    {
+      "id": "8ef2c9fa6bc9cfcc2fc2a147a4f5c9b3021dcaecd2d6b5e1",
+      "userId": "boss-0001",
+      "refreshTokenHash": "f01c6bfe1be36af30cf424e6391d15478d77c604d71d281db2f26aeb6b834527",
+      "expiresAt": 1776695901632,
+      "createdAt": 1774103901632,
+      "csrfToken": "ac7d632a0796b586467815e8faa0ad7438fd5e2b49351101"
+    },
+    {
+      "id": "815bb8c0ba4c1168ce0a9276e7b2ab98bd291743bd3558cd",
+      "userId": "83c3a70dd3ba1fba649c207a",
+      "refreshTokenHash": "f9cd1bf6d5faee7092c02e54a4d5f77d42a18e6c1355b1d7ef22ad7e9a5b06a6",
+      "expiresAt": 1776733102025,
+      "createdAt": 1774141102025,
+      "csrfToken": "d9c9a50440640ffd8683c9a5b46d286c6e2a6652ec7f49cb"
+    }
+  ],
+  "audit": [
+    {
+      "id": "2498daad12a951f6",
+      "userId": "83c3a70dd3ba1fba649c207a",
+      "action": "email_verified",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0",
+      "at": 1774141102031
+    },
+    {
+      "id": "d043478ff764c190",
+      "userId": "boss-0001",
+      "action": "login_success",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0",
+      "at": 1774103901646
+    },
+    {
+      "id": "6af0cc980d93b8ac",
+      "userId": "admin-0001",
+      "action": "login_success",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456",
+      "at": 1774102475252
+    },
+    {
+      "id": "afe5ef285f1f7187",
+      "userId": "boss-0001",
+      "action": "login_success",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+      "at": 1774102239831
+    },
+    {
+      "id": "e407fbe2267c12d6",
+      "userId": "boss-0001",
+      "action": "login_success",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456",
+      "at": 1774102188276
+    }
+  ]
+}

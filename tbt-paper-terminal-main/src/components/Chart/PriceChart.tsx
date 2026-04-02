@@ -4,8 +4,10 @@ import { handleApiError, logError } from '../../utils/errorHandler';
 import { useWatchlistStore, selectSelectedSymbol } from '../../store/watchlistStore';
 import { useAutomationStore } from '../../store/automationStore';
 import { useTradingStore } from '../../store/tradingStore';
+import { useWalletStore } from '../../store/walletStore';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import styles from './PriceChart.module.css';
 
@@ -142,7 +144,8 @@ export function PriceChart() {
   
   const selectedSymbol = useWatchlistStore(selectSelectedSymbol);
   const triggers = useAutomationStore((state) => state.triggers);
-  const openOrders = useTradingStore((state) => state.orders.filter(o => o.status === 'open'));
+  const activeAccountType = useWalletStore((state) => state.activeAccountType);
+  const openOrders = useTradingStore((state) => state.orders.filter(o => (o.accountType ?? activeAccountType) === activeAccountType && o.status === 'open'));
   
   const [chartType, setChartType] = useState<ChartType>('candlestick');
   const [timeRange, setTimeRange] = useState<TimeRange>('15m');
@@ -153,6 +156,7 @@ export function PriceChart() {
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [chartReady, setChartReady] = useState(false);
+  const klineWsRef = useRef<WebSocket | null>(null);
 
   // 切换指标
   const toggleIndicator = useCallback((indicator: Indicator) => {
@@ -244,10 +248,116 @@ export function PriceChart() {
     return () => clearInterval(interval);
   }, [selectedSymbol, timeRange, fetchKlines]);
 
+  // Live kline updates via WebSocket for smoother charts
+  useEffect(() => {
+    if (!selectedSymbol) return;
+
+    const interval = INTERVAL_MAP[timeRange];
+    const cacheKey = `${selectedSymbol}-${interval}`;
+    const wsBases = (() => {
+      const fromEnv = (import.meta.env.VITE_BINANCE_WS_BASES as string | undefined)
+        ?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (fromEnv && fromEnv.length > 0) return fromEnv;
+      const base = import.meta.env.VITE_BINANCE_WS_BASE || 'wss://testnet.binance.vision';
+      return [
+        base.replace(/\/+$/, ''),
+        'wss://stream.binance.com:9443',
+        'wss://stream.binance.com:443',
+      ];
+    })();
+    let baseIndex = 0;
+    const buildWsUrl = () => `${wsBases[baseIndex % wsBases.length]}/ws/${selectedSymbol.toLowerCase()}@kline_${interval}`;
+
+    if (klineWsRef.current) {
+      klineWsRef.current.close();
+      klineWsRef.current = null;
+    }
+
+    let closed = false;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectDelay = 1000;
+
+    const connect = () => {
+      if (closed) return;
+      try {
+        const ws = new WebSocket(buildWsUrl());
+        klineWsRef.current = ws;
+
+        ws.onmessage = (event) => {
+          let payload: unknown;
+          try {
+            payload = JSON.parse(event.data as string);
+          } catch {
+            return;
+          }
+
+          const msg = payload as { k?: { t: number; o: string; h: string; l: string; c: string; v: string } };
+          const k = msg.k;
+          if (!k) return;
+
+          const time = Math.floor(k.t / 1000) as UTCTimestamp;
+          const nextKline: KlineData = {
+            time,
+            open: parseFloat(k.o),
+            high: parseFloat(k.h),
+            low: parseFloat(k.l),
+            close: parseFloat(k.c),
+            volume: parseFloat(k.v),
+          };
+
+          setKlines((prev) => {
+            if (prev.length === 0) return prev;
+            const last = prev[prev.length - 1];
+            if (last && last.time === time) {
+              const updated = [...prev];
+              updated[updated.length - 1] = nextKline;
+              klinesCacheRef.current.set(cacheKey, { data: updated, timestamp: Date.now() });
+              return updated;
+            }
+            if (!last || time > last.time) {
+              const updated = [...prev.slice(-499), nextKline];
+              klinesCacheRef.current.set(cacheKey, { data: updated, timestamp: Date.now() });
+              return updated;
+            }
+            return prev;
+          });
+        };
+
+        ws.onclose = () => {
+          if (closed) return;
+          if (reconnectTimer) return;
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            reconnectDelay = Math.min(Math.round(reconnectDelay * 1.5), 15000);
+            baseIndex = (baseIndex + 1) % wsBases.length;
+            connect();
+          }, reconnectDelay);
+        };
+      } catch {
+        if (!closed) {
+          reconnectTimer = setTimeout(connect, reconnectDelay);
+        }
+      }
+    };
+
+    connect();
+
+    return () => {
+      closed = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (klineWsRef.current) {
+        klineWsRef.current.close();
+        klineWsRef.current = null;
+      }
+    };
+  }, [selectedSymbol, timeRange]);
+
   // 格式化时间
   const formatTime = useCallback((timestamp: number) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleString('zh-CN', {
+    return date.toLocaleString(getUiLocale(), {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
@@ -743,7 +853,7 @@ export function PriceChart() {
             {priceInfo && (
               <>
                 <span className={styles.currentPrice}>
-                  {priceInfo.current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {priceInfo.current.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className={`${styles.priceChange} ${priceInfo.change >= 0 ? styles.up : styles.down}`}>
                   {priceInfo.change >= 0 ? '+' : ''}{priceInfo.changePercent.toFixed(2)}%
@@ -756,18 +866,18 @@ export function PriceChart() {
           <div className={styles.ohlcData}>
             {crosshairData ? (
               <>
-                <span className={styles.ohlcItem}><label>O</label>{crosshairData.open.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span className={styles.ohlcItem}><label>H</label>{crosshairData.high.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span className={styles.ohlcItem}><label>L</label>{crosshairData.low.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.ohlcItem}><label>O</label>{crosshairData.open.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.ohlcItem}><label>H</label>{crosshairData.high.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.ohlcItem}><label>L</label>{crosshairData.low.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className={`${styles.ohlcItem} ${crosshairData.change >= 0 ? styles.up : styles.down}`}>
-                  <label>C</label>{crosshairData.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <label>C</label>{crosshairData.close.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className={styles.ohlcItem}><label>V</label>{(crosshairData.volume / 1000).toFixed(2)}K</span>
               </>
             ) : priceInfo && (
               <>
-                <span className={styles.ohlcItem}><label>{isMobile ? 'H' : '24H High'}</label>{priceInfo.high24h.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span className={styles.ohlcItem}><label>{isMobile ? 'L' : '24H Low'}</label>{priceInfo.low24h.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.ohlcItem}><label>{isMobile ? 'H' : '24H High'}</label>{priceInfo.high24h.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.ohlcItem}><label>{isMobile ? 'L' : '24H Low'}</label>{priceInfo.low24h.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 {!isMobile && (
                   <>
                     <span className={styles.ohlcItem}><label>24H Vol</label>{(priceInfo.volume / 1000000).toFixed(2)}M</span>

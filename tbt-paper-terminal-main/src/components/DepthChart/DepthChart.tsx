@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { useMarketStore, selectOrderBook, selectMetrics, selectRecentTrades } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import styles from './DepthChart.module.css';
 
 const DEPTH_LEVELS = 15;
 
 function formatPrice(price: number): string {
-  if (price >= 1000) return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (price >= 1000) return price.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (price >= 1) return price.toFixed(4);
   return price.toFixed(6);
 }

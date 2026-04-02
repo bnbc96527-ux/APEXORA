@@ -1,12 +1,12 @@
 import { 
   BarChart2, BarChart3, Briefcase, Search, Activity, AlertTriangle, X, Check, Info,
-  ChevronLeft, ChevronRight, Pause, Zap, Star, Pencil, ArrowUpDown, ArrowUp, ArrowDown,
+  ChevronLeft, ChevronRight, Pause, Zap, Star, Pencil, ArrowUpDown, ArrowUp, ArrowDown, ArrowRight,
   Settings, Bell, Globe, Wifi, WifiOff, RefreshCw, Plus, Minus, LineChart,
   Wallet, ClipboardList, ArrowLeftRight, Star as StarOutline,
   TrendingUp, TrendingDown, AlertCircle, BookOpen,
   // Wallet page icons
   Download, Upload, Copy, Link, History, Building2, CheckCircle, Loader, Trash2,
-  CreditCard, ExternalLink, ChevronDown, ChevronUp, Filter, Clock,
+  CreditCard, ExternalLink, ChevronDown, ChevronUp, Filter, Clock, MapPin, Award, Brain,
   Sun, Moon, List, Inbox, Archive, Play,
   // Chart icons
   Maximize2, Minimize2, Target, Crosshair, Shield,
@@ -51,6 +51,7 @@ export type IconName =
   | 'arrow-up-down'
   | 'arrow-up'
   | 'arrow-down'
+  | 'arrow-right'
   | 'trending-up'
   | 'trending-down'
   | 'settings'
@@ -65,6 +66,9 @@ export type IconName =
   | 'wallet'
   | 'clipboard-list'
   | 'arrow-left-right'
+  | 'map-pin'
+  | 'award'
+  | 'brain'
   // Wallet page icons
   | 'download'
   | 'upload'
@@ -182,6 +186,7 @@ const iconMap: Record<IconName, typeof BarChart3> = {
   'arrow-up-down': ArrowUpDown,
   'arrow-up': ArrowUp,
   'arrow-down': ArrowDown,
+  'arrow-right': ArrowRight,
   'trending-up': TrendingUp,
   'trending-down': TrendingDown,
   'settings': Settings,
@@ -196,6 +201,9 @@ const iconMap: Record<IconName, typeof BarChart3> = {
   'wallet': Wallet,
   'clipboard-list': ClipboardList,
   'arrow-left-right': ArrowLeftRight,
+  'map-pin': MapPin,
+  'award': Award,
+  'brain': Brain,
   // Wallet page icons
   'download': Download,
   'upload': Upload,
@@ -334,8 +342,6 @@ export function Icon({
     />
   );
 }
-
-
 
 
 

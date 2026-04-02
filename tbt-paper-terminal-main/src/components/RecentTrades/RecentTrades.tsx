@@ -2,6 +2,7 @@
 import { memo } from 'react';
 import { useMarketStore, selectRecentTrades } from '../../store/marketStore';
 import { useI18n } from '../../i18n';
+import { getUiLocale } from '../../utils/locale';
 import { Icon } from '../Icon';
 import type { Trade } from '../../types/market';
 import styles from './RecentTrades.module.css';
@@ -34,7 +35,7 @@ TradeRow.displayName = 'TradeRow';
 
 function formatPrice(price: string): string {
   const num = parseFloat(price);
-  if (num >= 1000) return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (num >= 1000) return num.toLocaleString(getUiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (num >= 1) return num.toFixed(4);
   return num.toFixed(6);
 }
@@ -48,7 +49,7 @@ function formatQuantity(qty: string): string {
 
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString('en-US', { 
+  return date.toLocaleTimeString(getUiLocale(), { 
     hour12: false,
     hour: '2-digit',
     minute: '2-digit',
